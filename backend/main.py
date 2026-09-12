@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import datetime
 from typing import List, Optional
@@ -21,15 +22,22 @@ from twilio_service import send_dispatch_notification, is_twilio_configured
 try:
     if firebase_admin._apps:
         fb_app = firebase_admin.get_app()
+    elif os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY"):
+        raw_key = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY", "").strip()
+        service_account_info = json.loads(raw_key)
+        cred = credentials.Certificate(service_account_info)
+        fb_app = firebase_admin.initialize_app(cred)
+        print("Firebase Admin SDK initialized successfully from FIREBASE_SERVICE_ACCOUNT_KEY env var.")
     elif os.path.exists("serviceAccountKey.json"):
         cred = credentials.Certificate("serviceAccountKey.json")
         fb_app = firebase_admin.initialize_app(cred)
+        print("Firebase Admin SDK initialized successfully from serviceAccountKey.json.")
     else:
         print("Running without real Firebase auth - assuming emulator or mock DB")
         fb_app = firebase_admin.initialize_app()
     
     db = firestore.client(app=fb_app)
-    print("Firebase Admin SDK initialized successfully.")
+    print("Firebase Firestore client connected successfully.")
 except Exception as e:
     print(f"Error initializing Firebase Admin SDK (continuing in mock mode): {e}")
     db = None

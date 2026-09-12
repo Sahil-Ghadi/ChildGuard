@@ -26,3 +26,5 @@ services:
         value: "join tube-pain"
       - key: DEFAULT_OFFICER_PHONE
         sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_KEY
+        sync: false
