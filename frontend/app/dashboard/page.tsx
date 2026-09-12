@@ -154,13 +154,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Sleek Top Console Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="font-display text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Tactical Dispatch Console
             </h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -317,23 +317,23 @@ export default function Dashboard() {
 
       {/* Tactical Field Intercept & Communications Action Bar */}
       {activeCase && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:px-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
               <Radio className="w-5 h-5 animate-pulse" />
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   RADIO 462.575 MHz ACTIVE
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">Patrol Units: PCR-04, RPF-02, HWP-09</span>
+                <span className="text-[11px] font-mono text-slate-500">Patrol Units: PCR-04, RPF-02, HWP-09</span>
               </div>
-              <h3 className="text-sm font-bold text-white">
-                Field Intercept Comms & Ground Resolution Telemetry
+              <h3 className="text-sm font-bold text-slate-900 font-display">
+                Field Intercept Comms & Twilio Cellular Gateway
               </h3>
-              <p className="text-xs text-slate-400">
-                Outbound voice & MDT data link to patrol units. Log ground findings (Subject Found / Swept Not Located).
+              <p className="text-xs text-slate-500">
+                Outbound voice & live SMS dispatch to patrol units. Auto-resolves case upon officer reply.
               </p>
             </div>
           </div>
@@ -341,17 +341,17 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 shrink-0">
             <Button
               onClick={() => setShowCommsModal(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs h-9 gap-1.5 rounded-xl shadow-xs"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs h-9 gap-1.5 rounded-lg shadow-xs"
             >
               <PhoneCall className="w-3.5 h-3.5" />
-              <span>Report Intercept Outcome</span>
+              <span>Ground Intercept Console</span>
             </Button>
             <Link href="/verification-desk">
               <Button
                 variant="outline"
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs h-9 gap-1.5 rounded-xl"
+                className="text-slate-700 hover:text-slate-900 border-slate-200 text-xs h-9 gap-1.5 rounded-lg"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Eye className="w-3.5 h-3.5 text-slate-500" />
                 <span>Verification Desk</span>
               </Button>
             </Link>

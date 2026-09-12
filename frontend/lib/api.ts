@@ -89,10 +89,10 @@ export async function resolveInterceptApi(caseId: string, payload: InterceptReso
   });
 }
 
-export async function sendTwilioDispatchApi(caseId: string, officerPhone?: string) {
+export async function sendTwilioDispatchApi(caseId: string, officerPhone?: string, channel: string = "both") {
   return apiFetch(`/api/twilio/dispatch`, {
     method: "POST",
-    body: JSON.stringify({ caseId, officerPhone }),
+    body: JSON.stringify({ caseId, officerPhone, channel }),
   });
 }
 

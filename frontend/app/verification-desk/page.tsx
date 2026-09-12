@@ -163,7 +163,7 @@ export default function VerificationDesk() {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Top Header Deck */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -537,11 +537,11 @@ export default function VerificationDesk() {
                       </div>
 
                       <Button 
-                        className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-2 rounded-xl shadow-xs"
+                        className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs gap-2 rounded-xl shadow-xs"
                         onClick={() => setShowCommsModal(true)}
                       >
                         <PhoneCall className="w-4 h-4" />
-                        <span>Report Field Outcome (Found / Not Found)</span>
+                        <span>Open Field Comms & Intercept Console</span>
                       </Button>
                     </div>
                   ) : (
@@ -639,14 +639,27 @@ export default function VerificationDesk() {
 
           {/* Ground Intercept Communications & Field Outcome Console */}
           {(activeSighting.status === "dispatched" || interceptSuccess?.sightingId === activeSighting.sightingId) && (
-            <FieldInterceptConsole
-              caseData={activeCase}
-              targetLocation={activeSighting.location.address}
-              sightingId={activeSighting.sightingId}
-              onResolved={() => {
-                fetchCasesAndSightings(selectedCaseId);
-              }}
-            />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                    Live Ground Intercept & Twilio Telemetry Console
+                  </h3>
+                </div>
+                <span className="text-[11px] font-mono text-slate-500 truncate max-w-md">
+                  Target: {activeSighting.location.address}
+                </span>
+              </div>
+              <FieldInterceptConsole
+                caseData={activeCase}
+                targetLocation={activeSighting.location.address}
+                sightingId={activeSighting.sightingId}
+                onResolved={() => {
+                  fetchCasesAndSightings(selectedCaseId);
+                }}
+              />
+            </div>
           )}
 
           {/* Geospatial Correlation Map (Bottom) */}

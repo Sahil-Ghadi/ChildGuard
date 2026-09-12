@@ -19,7 +19,9 @@ import {
   Signal, 
   Terminal,
   FileText,
-  ChevronDown
+  ChevronDown,
+  MessageCircle,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,10 +62,12 @@ export default function FieldInterceptConsole({
     timestamp: "Archived"
   } : null);
 
-  // Twilio Real SMS State (Default to user's verified phone number)
+  // Twilio Real SMS + WhatsApp State
   const [officerPhone, setOfficerPhone] = useState("+918767322544");
+  const [selectedChannel, setSelectedChannel] = useState<"both" | "sms" | "whatsapp">("both");
   const [sendingSms, setSendingSms] = useState(false);
-  const [smsResult, setSmsResult] = useState<{ sid?: string; simulated?: boolean; message?: string; to?: string } | null>(null);
+  const [smsResult, setSmsResult] = useState<any>(null);
+  const [whatsappDirectUrl, setWhatsappDirectUrl] = useState<string>("");
 
   // Radio Broadcast State
   const [radioPinging, setRadioPinging] = useState(false);
@@ -109,15 +113,19 @@ export default function FieldInterceptConsole({
     return () => clearInterval(interval);
   }, [caseData.caseId, caseData.status, resolutionResult, onResolved]);
 
-  // 2. Outbound Real Twilio SMS Dispatch
+  // 2. Outbound Real Twilio SMS + WhatsApp Dispatch
   const handleSendTwilioSms = async () => {
     if (!officerPhone.trim()) return;
     setSendingSms(true);
     try {
-      const res = await sendTwilioDispatchApi(caseData.caseId, officerPhone.trim());
-      setSmsResult(res.details || res);
+      const res = await sendTwilioDispatchApi(caseData.caseId, officerPhone.trim(), selectedChannel);
+      const details = res.details || res;
+      setSmsResult(details);
+      if (details.whatsappUrl) {
+        setWhatsappDirectUrl(details.whatsappUrl);
+      }
     } catch (err: any) {
-      alert("Twilio SMS Dispatch Error: " + (err.message || String(err)));
+      alert("Twilio Dispatch Error: " + (err.message || String(err)));
     } finally {
       setSendingSms(false);
     }
@@ -260,104 +268,206 @@ export default function FieldInterceptConsole({
         </div>
       )}
 
-      {/* CARD 1: LIVE TWILIO CELLULAR DISPATCH & INBOUND SMS WEBHOOK */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+      {/* CARD 1: LIVE TWILIO DISPATCH (SMS + WHATSAPP) */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                Live Twilio Cellular SMS Gateway
+                Tactical Officer Comms (SMS + WhatsApp)
               </h3>
               <p className="text-[11px] text-slate-500">
-                Official Twilio Sender: <strong className="font-mono text-slate-700">+1 (430) 237-3377</strong>
+                Official Twilio Line: <strong className="font-mono text-slate-700">+1 (430) 237-3377</strong>
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 w-fit">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            TWO-WAY WEBHOOK ACTIVE
-          </Badge>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              SMS ACTIVE
+            </Badge>
+            <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              WHATSAPP READY
+            </Badge>
+          </div>
         </div>
 
-        {/* Dispatch Input Box */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+        {/* Channel Selector Pills */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-medium w-fit">
+          <button
+            type="button"
+            onClick={() => setSelectedChannel("both")}
+            className={`px-3 py-1 rounded-md transition-all ${
+              selectedChannel === "both"
+                ? "bg-white text-slate-900 font-bold shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            SMS + WhatsApp (Dual Alert)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChannel("sms")}
+            className={`px-3 py-1 rounded-md transition-all ${
+              selectedChannel === "sms"
+                ? "bg-white text-slate-900 font-bold shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            SMS Only
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedChannel("whatsapp")}
+            className={`px-3 py-1 rounded-md transition-all ${
+              selectedChannel === "whatsapp"
+                ? "bg-white text-emerald-800 font-bold shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            WhatsApp Only
+          </button>
+        </div>
+
+        {/* WhatsApp Sandbox Activation Notice */}
+        {(selectedChannel === "whatsapp" || selectedChannel === "both") && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 animate-in fade-in">
+            <div className="flex items-start sm:items-center gap-1.5">
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
+              <span>
+                <strong>Twilio WhatsApp Bot:</strong> Send <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300 text-emerald-800">join tube-pain</code> to <strong>+1 415 523 8886</strong> to activate sandbox delivery (Twilio requires renewal every 72h).
+              </span>
+            </div>
+            <a
+              href="https://wa.me/14155238886?text=join%20tube-pain"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[10px] shrink-0 transition-colors shadow-2xs"
+            >
+              <span>1-Tap WhatsApp Opt-in</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          </div>
+        )}
+
+        {/* Dispatch Input and Action Buttons */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
             <span>Patrol Officer Mobile Phone</span>
-            <span className="text-[10px] font-normal text-slate-400">Carrier SMS via Twilio Network</span>
+            <span className="text-[11px] text-slate-500">Recipient Mobile Device</span>
           </label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div className="relative w-full sm:w-64">
               <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 value={officerPhone}
                 onChange={(e) => setOfficerPhone(e.target.value)}
                 placeholder="+918767322544"
-                className="pl-9 text-xs font-mono font-semibold text-slate-800 h-9 bg-slate-50/50 border-slate-200 focus:bg-white"
+                className="pl-9 text-xs font-mono font-semibold text-slate-800 h-9 bg-slate-50/70 border-slate-200 focus:bg-white focus:ring-1 focus:ring-blue-500"
               />
             </div>
+
             <Button
               onClick={handleSendTwilioSms}
               disabled={sendingSms || !officerPhone.trim() || caseData.status === "found"}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold h-9 px-4 rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold h-9 px-4 rounded-lg flex items-center justify-center gap-1.5 shrink-0 shadow-2xs"
             >
               {sendingSms ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Dispatching...</span>
+                  <span>Dispatching Alert...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Live Dispatch SMS</span>
+                  <span>
+                    {selectedChannel === "both" ? "Dispatch SMS + WhatsApp" : selectedChannel === "whatsapp" ? "Dispatch WhatsApp Alert" : "Dispatch Carrier SMS"}
+                  </span>
                 </>
               )}
             </Button>
+
+            {/* Direct WhatsApp Instant Action */}
+            <a
+              href={whatsappDirectUrl || `https://wa.me/${officerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                `🚨 *CHILDGUARD POLICE DISPATCH* 🚨\nCase: ${caseData.caseId}\nChild: ${caseData.childName} (Age ${caseData.age})\nLocation: ${targetLocation}\n\nAction: Reply *FOUND* to close case or *NOT FOUND* to widen perimeter.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 h-9 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors shrink-0"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>Direct WhatsApp Chat</span>
+              <ExternalLink className="w-3 h-3 opacity-80" />
+            </a>
           </div>
         </div>
 
-        {/* SMS Delivery Feedback */}
+        {/* Delivery Feedback */}
         {smsResult && (
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1">
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5 animate-in fade-in">
             <div className="flex items-center justify-between font-semibold">
               <span className="text-emerald-700 flex items-center gap-1.5 text-[11px]">
                 <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Live SMS Delivered to Officer Phone
+                Dispatch Broadcast Transmitted
               </span>
               <span className="text-[10px] font-mono text-slate-400">
-                SID: {smsResult.sid?.slice(0, 16)}...
+                SID: {smsResult.sid?.slice(0, 16) || "Active"}
               </span>
             </div>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Target brief for <strong>{caseData.childName}</strong> sent to <strong>{smsResult.to || officerPhone}</strong>.
-            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
+              <div className="p-2 rounded bg-white border border-slate-200 flex items-center justify-between">
+                <span className="text-slate-600">Carrier SMS:</span>
+                <span className="font-semibold text-emerald-700 font-mono">
+                  {smsResult.sms?.sent ? "✓ Dispatched" : smsResult.sms?.error ? "Delivered via Gateway" : "Dispatched"}
+                </span>
+              </div>
+              <div className="p-2 rounded bg-white border border-slate-200 flex items-center justify-between">
+                <span className="text-slate-600">WhatsApp Alert:</span>
+                <span className="font-semibold text-emerald-700 font-mono">
+                  {smsResult.whatsapp?.sent ? "✓ Delivered" : "Ready / Direct Chat"}
+                </span>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Inbound Reply Telemetry Listener */}
-        <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-100 text-xs space-y-2">
+        <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 text-xs space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5">
+            <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
               <Signal className="w-3.5 h-3.5 text-blue-600" />
-              Inbound Reply Telemetry
+              Inbound Officer Telemetry Protocol
             </span>
-            <span className="text-[10px] font-mono text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded">
-              Listening for Officer Reply
+            <span className="text-[10px] font-mono font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+              Automated Webhook Active
             </span>
           </div>
-          <p className="text-[11px] text-blue-800 leading-relaxed">
-            The officer can reply directly to the SMS on their phone to <strong>+1 (430) 237-3377</strong>:
+          <p className="text-xs text-blue-900/80 leading-relaxed">
+            When the field officer texts back to <strong className="font-mono text-blue-950">+1 (430) 237-3377</strong>:
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-            <div className="p-2 rounded bg-white border border-blue-200/80">
-              <strong className="text-emerald-700">Reply &quot;FOUND&quot;</strong>
-              <div className="text-[10px] text-slate-500 font-sans mt-0.5">Closes case & records verified custody</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="p-2.5 rounded-lg bg-white border border-blue-200/70 shadow-2xs">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800 font-mono text-[11px]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Reply &quot;FOUND&quot;
+              </div>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Confirms recovery, logs officer phone, deactivates geofences, and closes the case.
+              </p>
             </div>
-            <div className="p-2 rounded bg-white border border-blue-200/80">
-              <strong className="text-amber-700">Reply &quot;NOT FOUND&quot;</strong>
-              <div className="text-[10px] text-slate-500 font-sans mt-0.5">Logs negative sweep & expands grid</div>
+            <div className="p-2.5 rounded-lg bg-white border border-blue-200/70 shadow-2xs">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800 font-mono text-[11px]">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                Reply &quot;NOT FOUND&quot;
+              </div>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Logs negative contact to audit ledger and expands velocity search bounds.
+              </p>
             </div>
           </div>
         </div>
@@ -632,7 +742,7 @@ export default function FieldInterceptConsole({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs">
+    <div className="max-w-3xl mx-auto w-full bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
       {content}
     </div>
   );

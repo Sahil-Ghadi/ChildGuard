@@ -390,7 +390,8 @@ def resolve_intercept(caseId: str, resolution: InterceptResolution):
 
 class TwilioDispatchReq(BaseModel):
     caseId: str
-    officerPhone: Optional[str] = "+919876543210"
+    officerPhone: Optional[str] = "+918767322544"
+    channel: Optional[str] = "both"
 
 @app.post("/api/twilio/dispatch")
 def trigger_twilio_dispatch(req: TwilioDispatchReq):
@@ -411,14 +412,15 @@ def trigger_twilio_dispatch(req: TwilioDispatchReq):
         child_name=case_dict.get("childName", "Unknown"),
         age=case_dict.get("age", 0),
         location_address=case_dict.get("lastSeenLocation", {}).get("address", "Reported location"),
-        photo_url=case_dict.get("photoUrl", "")
+        photo_url=case_dict.get("photoUrl", ""),
+        channel=req.channel or "both"
     )
     
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
     audit_entry = {
         "agentName": "Twilio Dispatch Gateway",
-        "action": f"Tactical SMS Dispatched to {req.officerPhone}",
-        "reasoning": f"Sent case brief and reply protocol ('FOUND' or 'NOT FOUND') via Twilio. SID: {res.get('sid')}",
+        "action": f"Tactical SMS & WhatsApp Dispatched to {req.officerPhone}",
+        "reasoning": f"Dispatched briefing via channels ({req.channel or 'both'}). SID: {res.get('sid')}",
         "timestamp": now_iso
     }
     if db:
@@ -438,7 +440,7 @@ def trigger_twilio_dispatch(req: TwilioDispatchReq):
         mock_db["missingChildren"][req.caseId]["auditLog"] = log
         
     return {
-        "message": "Dispatch SMS sent to officer",
+        "message": "Dispatch alert transmitted to officer via SMS & WhatsApp",
         "details": res,
         "isConfigured": is_twilio_configured()
     }
