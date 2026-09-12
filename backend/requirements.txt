@@ -9,3 +9,5 @@ Pillow
 opencv-python-headless
 scikit-learn
 pandas
+twilio>=9.0.0
+python-multipart
