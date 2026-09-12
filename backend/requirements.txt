@@ -9,6 +9,6 @@ Pillow
 opencv-python-headless
 scikit-learn
 pandas
-twilio>=9.0.0
+twilio
 python-multipart
 google.generativeai
