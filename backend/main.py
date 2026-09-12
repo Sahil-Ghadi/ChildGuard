@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -15,6 +15,7 @@ from firebase_admin import credentials, firestore
 from pydantic import BaseModel
 from models import CaseCreate, SightingCreate, SightingDB
 from graph import case_app, sighting_app
+from twilio_service import send_dispatch_notification, is_twilio_configured
 
 # Initialize Firebase Admin SDK
 try:
@@ -349,6 +350,14 @@ def resolve_intercept(caseId: str, resolution: InterceptResolution):
                     update_fields["recoveryOfficer"] = f"{resolution.officerName} ({resolution.unitCallsign})"
                     update_fields["alertDistributed"] = False  # Deactivate emergency geofence
                 c_ref.update(update_fields)
+
+                if is_found:
+                    try:
+                        s_docs = db.collection("missingChildren").document(caseId).collection("sightings").stream()
+                        for s_doc in s_docs:
+                            s_doc.reference.update({"status": "resolved"})
+                    except Exception as se:
+                        print(f"Error updating sightings in Firestore: {se}")
         except Exception as e:
             print(f"Error updating case resolution in Firestore: {e}")
             
@@ -368,6 +377,9 @@ def resolve_intercept(caseId: str, resolution: InterceptResolution):
             mock_db["missingChildren"][caseId]["recoveryLocation"] = resolution.location
             mock_db["missingChildren"][caseId]["recoveredAt"] = now_iso
             mock_db["missingChildren"][caseId]["recoveryOfficer"] = f"{resolution.officerName} ({resolution.unitCallsign})"
+            if caseId in mock_db["sightings"]:
+                for s_id in mock_db["sightings"][caseId]:
+                    mock_db["sightings"][caseId][s_id]["status"] = "resolved"
 
     return {
         "message": "Subject recovery recorded successfully! Emergency alert closed." if is_found else "Search sweep logged. Perimeter expanded.",
@@ -375,6 +387,131 @@ def resolve_intercept(caseId: str, resolution: InterceptResolution):
         "status": new_status,
         "isFound": is_found
     }
+
+class TwilioDispatchReq(BaseModel):
+    caseId: str
+    officerPhone: Optional[str] = "+919876543210"
+
+@app.post("/api/twilio/dispatch")
+def trigger_twilio_dispatch(req: TwilioDispatchReq):
+    case_dict = None
+    if db:
+        doc = db.collection("missingChildren").document(req.caseId).get()
+        if doc.exists:
+            case_dict = doc.to_dict()
+    if not case_dict and req.caseId in mock_db["missingChildren"]:
+        case_dict = mock_db["missingChildren"][req.caseId]
+        
+    if not case_dict:
+        raise HTTPException(status_code=404, detail="Case not found")
+        
+    res = send_dispatch_notification(
+        to_phone=req.officerPhone,
+        case_id=req.caseId,
+        child_name=case_dict.get("childName", "Unknown"),
+        age=case_dict.get("age", 0),
+        location_address=case_dict.get("lastSeenLocation", {}).get("address", "Reported location"),
+        photo_url=case_dict.get("photoUrl", "")
+    )
+    
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    audit_entry = {
+        "agentName": "Twilio Dispatch Gateway",
+        "action": f"Tactical SMS Dispatched to {req.officerPhone}",
+        "reasoning": f"Sent case brief and reply protocol ('FOUND' or 'NOT FOUND') via Twilio. SID: {res.get('sid')}",
+        "timestamp": now_iso
+    }
+    if db:
+        try:
+            c_ref = db.collection("missingChildren").document(req.caseId)
+            c_doc = c_ref.get()
+            if c_doc.exists:
+                log = c_doc.to_dict().get("auditLog", [])
+                log.append(audit_entry)
+                c_ref.update({"auditLog": log})
+        except Exception as e:
+            print(f"Error logging Twilio send: {e}")
+            
+    if req.caseId in mock_db["missingChildren"]:
+        log = mock_db["missingChildren"][req.caseId].get("auditLog", [])
+        log.append(audit_entry)
+        mock_db["missingChildren"][req.caseId]["auditLog"] = log
+        
+    return {
+        "message": "Dispatch SMS sent to officer",
+        "details": res,
+        "isConfigured": is_twilio_configured()
+    }
+
+@app.post("/api/twilio/webhook")
+async def twilio_incoming_webhook(request: Request):
+    content_type = request.headers.get("content-type", "")
+    from_number = ""
+    body = ""
+    
+    if "application/json" in content_type:
+        data = await request.json()
+        from_number = data.get("From", data.get("from", "+919876543210"))
+        body = data.get("Body", data.get("body", ""))
+    else:
+        form_data = await request.form()
+        from_number = form_data.get("From", "")
+        body = form_data.get("Body", "")
+        
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    clean_body = body.strip().upper()
+    
+    # Find targeted case (search for caseId inside body, else pick the latest active case)
+    target_case_id = None
+    all_cases = list_cases(status="all")
+    for c in all_cases:
+        if c.get("caseId") and c["caseId"].upper() in clean_body:
+            target_case_id = c["caseId"]
+            break
+            
+    if not target_case_id:
+        open_cases = [c for c in all_cases if c.get("status") == "open"]
+        if open_cases:
+            target_case_id = open_cases[0].get("caseId")
+        elif all_cases:
+            target_case_id = all_cases[0].get("caseId")
+            
+    is_not_found = any(keyword in clean_body for keyword in ["NOT FOUND", "NOT_FOUND", "NEGATIVE", "UNABLE", "NO"])
+    is_found = not is_not_found and any(keyword in clean_body for keyword in ["FOUND", "RECOVERED", "SAFE", "LOCATED", "YES"])
+    
+    response_msg = ""
+    case_resolved = False
+    
+    if target_case_id and (is_found or is_not_found):
+        outcome = "found" if is_found else "not_found"
+        res_payload = InterceptResolution(
+            outcome=outcome,
+            unitCallsign="PCR-04 (Twilio SMS)",
+            officerName=f"Field Officer ({from_number})",
+            location="Confirmed via Officer SMS Telemetry",
+            condition="Safe and uninjured" if is_found else "N/A",
+            notes=f"Direct SMS Officer Reply: '{body}'"
+        )
+        resolve_intercept(target_case_id, res_payload)
+        case_resolved = is_found
+        
+        if is_found:
+            response_msg = f"ChildGuard Dispatch: Case {target_case_id} marked as RECOVERED! Emergency geofences deactivated. Case investigation closed. Good work officer."
+        else:
+            response_msg = f"ChildGuard Dispatch: Negative contact logged for Case {target_case_id}. Search velocity perimeter expanding."
+    else:
+        response_msg = "ChildGuard Dispatch: Unrecognized command. Reply 'FOUND [notes]' to confirm safe recovery and close case, or 'NOT FOUND [notes]' to log negative contact."
+        
+    twiml_xml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{response_msg}</Message></Response>'
+    return Response(
+        content=twiml_xml, 
+        media_type="application/xml",
+        headers={
+            "X-ChildGuard-Case-Id": str(target_case_id),
+            "X-ChildGuard-Outcome": "found" if is_found else "not_found" if is_not_found else "unknown",
+            "X-ChildGuard-Resolved": str(case_resolved)
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

@@ -78,9 +78,44 @@ export type InterceptResolutionPayload = {
   notes?: string;
 };
 
+export async function getCaseApi(caseId: string): Promise<CaseData> {
+  return apiFetch(`/api/cases/${caseId}`);
+}
+
 export async function resolveInterceptApi(caseId: string, payload: InterceptResolutionPayload) {
   return apiFetch(`/api/cases/${caseId}/intercept-resolution`, {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function sendTwilioDispatchApi(caseId: string, officerPhone?: string) {
+  return apiFetch(`/api/twilio/dispatch`, {
+    method: "POST",
+    body: JSON.stringify({ caseId, officerPhone }),
+  });
+}
+
+export async function simulateTwilioReplyApi(body: string, fromNumber?: string) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const res = await fetch(`${API_BASE}/api/twilio/webhook`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ Body: body, From: fromNumber || "+919876543210" }),
+  });
+  const rawXml = await res.text();
+  const outcome = res.headers.get("X-ChildGuard-Outcome") || "";
+  const caseResolved = res.headers.get("X-ChildGuard-Resolved") === "True" || res.headers.get("X-ChildGuard-Resolved") === "true";
+  const caseId = res.headers.get("X-ChildGuard-Case-Id") || "";
+  
+  const match = rawXml.match(/<Message>([\s\S]*?)<\/Message>/);
+  const message = match ? match[1] : rawXml;
+
+  return {
+    rawXml,
+    message,
+    outcome,
+    caseResolved,
+    caseId,
+  };
 }

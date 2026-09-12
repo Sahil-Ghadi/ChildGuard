@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Radio, 
   ShieldCheck, 
@@ -11,22 +11,26 @@ import {
   Loader2, 
   X, 
   Volume2, 
-  Users, 
-  Clock, 
-  Activity,
-  CheckCircle,
-  Car,
-  Train,
-  Shield,
-  PhoneCall,
-  Wifi,
-  FileCheck2,
-  Share2
+  Car, 
+  Train, 
+  Shield, 
+  Smartphone, 
+  CheckCheck, 
+  Signal, 
+  Terminal,
+  FileText,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { resolveInterceptApi, type CaseData } from "@/lib/api";
+import { 
+  resolveInterceptApi, 
+  sendTwilioDispatchApi, 
+  simulateTwilioReplyApi, 
+  getCaseApi, 
+  type CaseData 
+} from "@/lib/api";
 
 interface FieldInterceptConsoleProps {
   caseData: CaseData;
@@ -45,29 +49,138 @@ export default function FieldInterceptConsole({
   onClose,
   isModal = false,
 }: FieldInterceptConsoleProps) {
-  const [activeTab, setActiveTab] = useState<"found" | "not_found">("found");
-  const [radioPinging, setRadioPinging] = useState(false);
-  const [radioPingSuccess, setRadioPingSuccess] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  // Live Status Polling
   const [resolutionResult, setResolutionResult] = useState<{
     outcome: "found" | "not_found";
     message: string;
     timestamp: string;
-  } | null>(null);
+  } | null>(caseData.status === "found" ? {
+    outcome: "found",
+    message: "Subject Safely Recovered & Case Resolved",
+    timestamp: "Archived"
+  } : null);
 
-  // Form State for Found
+  // Twilio Real SMS State (Default to user's verified phone number)
+  const [officerPhone, setOfficerPhone] = useState("+918767322544");
+  const [sendingSms, setSendingSms] = useState(false);
+  const [smsResult, setSmsResult] = useState<{ sid?: string; simulated?: boolean; message?: string; to?: string } | null>(null);
+
+  // Radio Broadcast State
+  const [radioPinging, setRadioPinging] = useState(false);
+  const [radioPingSuccess, setRadioPingSuccess] = useState(false);
+
+  // Manual Direct Filing Tab State
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualTab, setManualTab] = useState<"found" | "not_found">("found");
+  const [submittingManual, setSubmittingManual] = useState(false);
   const [unitCallsign, setUnitCallsign] = useState("PCR-04");
   const [officerName, setOfficerName] = useState("Sub-Inspector R. Sawant");
   const [recoveryLocation, setRecoveryLocation] = useState(targetLocation);
   const [condition, setCondition] = useState("Safe and uninjured");
-  const [notes, setNotes] = useState("Subject verified against reference biometric dossier. Physical match confirmed. Child in protective custody.");
+  const [notes, setNotes] = useState("Visual and physical biometric match confirmed. Subject in protective custody.");
+  const [sweptArea, setSweptArea] = useState(`${targetLocation} & 500m perimeter`);
+  const [notFoundNotes, setNotFoundNotes] = useState("Physical sweep completed with negative contact. Expanding perimeter bounds.");
 
-  // Form State for Not Found
-  const [sweptArea, setSweptArea] = useState(`${targetLocation} & 500m commercial perimeter`);
-  const [notFoundNotes, setNotFoundNotes] = useState("Conducted physical sweep of transit platforms, ticket counters, and exits. Negative visual contact. Recommend expanding velocity perimeter.");
+  // Dev Tool State (collapsible)
+  const [showDevTool, setShowDevTool] = useState(false);
+  const [devReplyText, setDevReplyText] = useState("");
+  const [devSending, setDevSending] = useState(false);
 
-  const handleSimulateRadioPing = () => {
+  // 1. Live Background Polling for real inbound officer SMS replies
+  useEffect(() => {
+    if (resolutionResult?.outcome === "found" || caseData.status === "found") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const latest = await getCaseApi(caseData.caseId);
+        if (latest && latest.status === "found") {
+          setResolutionResult({
+            outcome: "found",
+            message: `Ground Officer SMS Confirmed: Subject Safely Recovered! Emergency alerts closed.`,
+            timestamp: new Date().toLocaleTimeString(),
+          });
+          if (onResolved) onResolved("found");
+        }
+      } catch (e) {
+        // Silently continue polling
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [caseData.caseId, caseData.status, resolutionResult, onResolved]);
+
+  // 2. Outbound Real Twilio SMS Dispatch
+  const handleSendTwilioSms = async () => {
+    if (!officerPhone.trim()) return;
+    setSendingSms(true);
+    try {
+      const res = await sendTwilioDispatchApi(caseData.caseId, officerPhone.trim());
+      setSmsResult(res.details || res);
+    } catch (err: any) {
+      alert("Twilio SMS Dispatch Error: " + (err.message || String(err)));
+    } finally {
+      setSendingSms(false);
+    }
+  };
+
+  // 3. Simulated/Dev Webhook Reply (Discreet fallback)
+  const handleTriggerDevReply = async (text: string) => {
+    if (!text.trim()) return;
+    setDevSending(true);
+    try {
+      const res = await simulateTwilioReplyApi(text, officerPhone);
+      if (res.caseResolved || res.outcome === "found") {
+        setResolutionResult({
+          outcome: "found",
+          message: `Inbound Webhook Executed: ${res.message}`,
+          timestamp: new Date().toLocaleTimeString(),
+        });
+        if (onResolved) onResolved("found");
+      } else if (res.outcome === "not_found") {
+        setResolutionResult({
+          outcome: "not_found",
+          message: `Inbound Webhook Logged Sweep: ${res.message}`,
+          timestamp: new Date().toLocaleTimeString(),
+        });
+        if (onResolved) onResolved("not_found");
+      }
+    } catch (err: any) {
+      alert("Webhook Error: " + (err.message || String(err)));
+    } finally {
+      setDevSending(false);
+    }
+  };
+
+  // 4. Radio Chime & Speech Broadcast
+  const handleBroadcastAudio = () => {
     setRadioPinging(true);
+    try {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtxClass) {
+        const ctx = new AudioCtxClass();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+      }
+    } catch (e) {}
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const text = `Attention all units: PCR-04, RPF-02, HWP-09. Biometric sighting confirmed for ${caseData.childName}. Proceed immediately to ${targetLocation}.`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
     setTimeout(() => {
       setRadioPinging(false);
       setRadioPingSuccess(true);
@@ -75,10 +188,11 @@ export default function FieldInterceptConsole({
     }, 1200);
   };
 
-  const handleReportOutcome = async () => {
-    setSubmitting(true);
+  // 5. Manual Form Outcome Submission
+  const handleManualSubmit = async () => {
+    setSubmittingManual(true);
     try {
-      if (activeTab === "found") {
+      if (manualTab === "found") {
         await resolveInterceptApi(caseData.caseId, {
           outcome: "found",
           unitCallsign,
@@ -89,7 +203,7 @@ export default function FieldInterceptConsole({
         });
         setResolutionResult({
           outcome: "found",
-          message: `Subject safely recovered by Unit ${unitCallsign} (${officerName})! Emergency geofences deactivated.`,
+          message: `Subject safely recovered by Unit ${unitCallsign} (${officerName})! Emergency alerts deactivated.`,
           timestamp: new Date().toLocaleTimeString(),
         });
       } else {
@@ -102,382 +216,383 @@ export default function FieldInterceptConsole({
         });
         setResolutionResult({
           outcome: "not_found",
-          message: `Area sweep logged by Unit ${unitCallsign}. Search perimeter automatically expanded.`,
+          message: `Area sweep logged by Unit ${unitCallsign}. Search perimeter expanded.`,
           timestamp: new Date().toLocaleTimeString(),
         });
       }
-
-      if (onResolved) {
-        onResolved(activeTab);
-      }
+      if (onResolved) onResolved(manualTab);
     } catch (err: any) {
-      console.error("Resolution submit error:", err);
-      alert(err.message || "Failed to submit intercept outcome.");
+      alert("Manual filing error: " + (err.message || String(err)));
     } finally {
-      setSubmitting(false);
+      setSubmittingManual(false);
     }
   };
 
   const content = (
-    <div className="space-y-6">
-      
-      {/* SECTION 1: HOW COMMAND IS CONTACTING THE TEAM */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <Wifi className="w-3.5 h-3.5 text-blue-600" />
-              1. Outbound Tactical Comms (Command &rarr; Ground Units)
-            </h3>
+    <div className="space-y-4 text-slate-800">
+
+      {/* RECOVERY BANNER IF RESOLVED */}
+      {resolutionResult && (
+        <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
+          resolutionResult.outcome === "found"
+            ? "bg-emerald-50 border-emerald-300 text-emerald-950"
+            : "bg-amber-50 border-amber-300 text-amber-950"
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0 ${
+              resolutionResult.outcome === "found" ? "bg-emerald-600 shadow-xs" : "bg-amber-600 shadow-xs"
+            }`}>
+              {resolutionResult.outcome === "found" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+            </div>
+            <div>
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider block">
+                {resolutionResult.outcome === "found" ? "CASE RESOLVED • CHILD SAFELY RECOVERED" : "SEARCH AREA EXPANDED"}
+              </span>
+              <p className="text-xs font-semibold mt-0.5">{resolutionResult.message}</p>
+              <span className="text-[10px] font-mono opacity-70">Logged at {resolutionResult.timestamp}</span>
+            </div>
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono bg-blue-50 text-blue-700 border-blue-200">
-            CHANNEL: SEC-INTERCEPT-ALPHA (462.575 MHz)
+          {onClose && (
+            <Button size="sm" variant="outline" onClick={onClose} className="h-8 text-xs rounded-lg">
+              Close Console
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* CARD 1: LIVE TWILIO CELLULAR DISPATCH & INBOUND SMS WEBHOOK */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+              <Smartphone className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                Live Twilio Cellular SMS Gateway
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Official Twilio Sender: <strong className="font-mono text-slate-700">+1 (430) 237-3377</strong>
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 w-fit">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            TWO-WAY WEBHOOK ACTIVE
           </Badge>
         </div>
 
-        {/* Radio Channel & Broadcast Banner */}
-        <div className="p-4 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-600/30 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0">
-                <Radio className="w-5 h-5 animate-pulse" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-slate-300">POLICE MDT & ENCRYPTED TACTICAL RADIO</span>
-                  <span className="text-[10px] font-mono bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-800">
-                    ONLINE
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Target: <strong className="text-white">{targetLocation}</strong> | Case Dossier: <strong className="text-blue-400">{caseData.childName} ({caseData.caseId})</strong>
-                </p>
-              </div>
+        {/* Dispatch Input Box */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+            <span>Patrol Officer Mobile Phone</span>
+            <span className="text-[10px] font-normal text-slate-400">Carrier SMS via Twilio Network</span>
+          </label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                value={officerPhone}
+                onChange={(e) => setOfficerPhone(e.target.value)}
+                placeholder="+918767322544"
+                className="pl-9 text-xs font-mono font-semibold text-slate-800 h-9 bg-slate-50/50 border-slate-200 focus:bg-white"
+              />
             </div>
-
             <Button
-              size="sm"
-              onClick={handleSimulateRadioPing}
-              disabled={radioPinging}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs h-8 gap-1.5 rounded-lg shrink-0 shadow-xs"
+              onClick={handleSendTwilioSms}
+              disabled={sendingSms || !officerPhone.trim() || caseData.status === "found"}
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold h-9 px-4 rounded-lg flex items-center gap-1.5 shrink-0 shadow-2xs"
             >
-              {radioPinging ? (
+              {sendingSms ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>TRANSMITTING...</span>
+                  <span>Dispatching...</span>
                 </>
               ) : (
                 <>
-                  <Volume2 className="w-3.5 h-3.5" />
-                  <span>Broadcast Audio Advisory</span>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Send Live Dispatch SMS</span>
                 </>
               )}
             </Button>
           </div>
+        </div>
 
-          {/* Simulated Radio Transmission Display */}
-          <div className="bg-slate-950/80 rounded-lg p-2.5 border border-slate-800/80 text-[11px] font-mono flex items-start gap-2.5">
-            <Activity className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 flex-1">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Live Transmission Dispatch String:</span>
-              <p className="text-emerald-400/90 leading-relaxed">
-                &ldquo;ALL UNITS (PCR-04, RPF-02, HWP-09): High-confidence biometric sighting confirmed for {caseData.childName}, age {caseData.age}. Target coordinates pushed to cruisers at {targetLocation}. Initiate immediate perimeter sealing and visual contact.&rdquo;
-              </p>
-              {radioPingSuccess && (
-                <span className="text-[10px] text-emerald-300 font-bold block pt-1 animate-in fade-in">
-                  &check; AUDIO DISPATCH ACKNOWLEDGED BY ALL THREE FIELD STATIONS (462.575 MHz)
-                </span>
-              )}
+        {/* SMS Delivery Feedback */}
+        {smsResult && (
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1">
+            <div className="flex items-center justify-between font-semibold">
+              <span className="text-emerald-700 flex items-center gap-1.5 text-[11px]">
+                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                Live SMS Delivered to Officer Phone
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">
+                SID: {smsResult.sid?.slice(0, 16)}...
+              </span>
             </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Target brief for <strong>{caseData.childName}</strong> sent to <strong>{smsResult.to || officerPhone}</strong>.
+            </p>
           </div>
+        )}
 
-          {/* Assigned Field Units */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Car className="w-4 h-4 text-blue-400" />
-                <div>
-                  <div className="text-xs font-bold font-mono text-white">PCR-04</div>
-                  <div className="text-[10px] text-slate-400">Sector Beat Patrol</div>
-                </div>
-              </div>
-              <Badge variant="outline" className="text-[9px] font-mono border-emerald-500/50 text-emerald-400 bg-emerald-950/30">
-                ETA 2 MIN
-              </Badge>
+        {/* Inbound Reply Telemetry Listener */}
+        <div className="p-3 rounded-lg bg-blue-50/50 border border-blue-100 text-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5">
+              <Signal className="w-3.5 h-3.5 text-blue-600" />
+              Inbound Reply Telemetry
+            </span>
+            <span className="text-[10px] font-mono text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded">
+              Listening for Officer Reply
+            </span>
+          </div>
+          <p className="text-[11px] text-blue-800 leading-relaxed">
+            The officer can reply directly to the SMS on their phone to <strong>+1 (430) 237-3377</strong>:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+            <div className="p-2 rounded bg-white border border-blue-200/80">
+              <strong className="text-emerald-700">Reply &quot;FOUND&quot;</strong>
+              <div className="text-[10px] text-slate-500 font-sans mt-0.5">Closes case & records verified custody</div>
             </div>
-
-            <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Train className="w-4 h-4 text-amber-400" />
-                <div>
-                  <div className="text-xs font-bold font-mono text-white">RPF-02</div>
-                  <div className="text-[10px] text-slate-400">Railway & Bus Intercept</div>
-                </div>
-              </div>
-              <Badge variant="outline" className="text-[9px] font-mono border-amber-500/50 text-amber-400 bg-amber-950/30">
-                ETA 4 MIN
-              </Badge>
-            </div>
-
-            <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-purple-400" />
-                <div>
-                  <div className="text-xs font-bold font-mono text-white">HWP-09</div>
-                  <div className="text-[10px] text-slate-400">Highway Roadblock</div>
-                </div>
-              </div>
-              <Badge variant="outline" className="text-[9px] font-mono border-purple-500/50 text-purple-400 bg-purple-950/30">
-                ACTIVE
-              </Badge>
+            <div className="p-2 rounded bg-white border border-blue-200/80">
+              <strong className="text-amber-700">Reply &quot;NOT FOUND&quot;</strong>
+              <div className="text-[10px] text-slate-500 font-sans mt-0.5">Logs negative sweep & expands grid</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: HOW THE TEAM CONTACTS COMMAND (FIELD RESOLUTION UPLINK) */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
+      {/* CARD 2: TACTICAL MDT & RADIO AUDIO BROADCAST */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" />
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <PhoneCall className="w-3.5 h-3.5 text-blue-600" />
-              2. Inbound Field Resolution Uplink (Ground Units &rarr; Command)
-            </h3>
+            <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center">
+              <Radio className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                Tactical Voice & Cruiser MDT Comms
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Channel: <span className="font-mono font-medium text-slate-700">SEC-INTERCEPT-ALPHA (462.575 MHz)</span>
+              </p>
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-slate-500">
-            Real-time Officer Telemetry
-          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleBroadcastAudio}
+            disabled={radioPinging}
+            className="h-8 text-xs border-slate-200 text-slate-700 gap-1.5 rounded-lg"
+          >
+            {radioPinging ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                <span>Broadcasting...</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-3.5 h-3.5 text-blue-600" />
+                <span>Broadcast Audio Alert</span>
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Resolution Outcome Success Notification */}
-        {resolutionResult && (
-          <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 ${
-            resolutionResult.outcome === "found" 
-              ? "bg-emerald-50 border-emerald-300 text-emerald-900" 
-              : "bg-amber-50 border-amber-300 text-amber-900"
-          }`}>
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 ${
-                resolutionResult.outcome === "found" ? "bg-emerald-600" : "bg-amber-600"
-              }`}>
-                {resolutionResult.outcome === "found" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-              </div>
-              <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider">
-                  {resolutionResult.outcome === "found" ? "CRITICAL PROTOCOL: RECOVERY CONFIRMED" : "SEARCH ADJUSTMENT LOGGED"}
-                </span>
-                <p className="text-xs font-bold">{resolutionResult.message}</p>
-                <span className="text-[10px] font-mono opacity-75">Logged at {resolutionResult.timestamp}</span>
-              </div>
+        {/* Assigned Cruiser Units */}
+        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+            <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
+              <Car className="w-3.5 h-3.5 text-blue-600" />
+              <span>PCR-04</span>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setResolutionResult(null)}
-              className="h-8 text-xs border-slate-300 rounded-lg"
-            >
-              Dismiss
-            </Button>
+            <div className="text-[10px] text-slate-500">Sector Beat &bull; 2 min</div>
+          </div>
+          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+            <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
+              <Train className="w-3.5 h-3.5 text-amber-600" />
+              <span>RPF-02</span>
+            </div>
+            <div className="text-[10px] text-slate-500">Transit &bull; 4 min</div>
+          </div>
+          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+            <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
+              <Shield className="w-3.5 h-3.5 text-purple-600" />
+              <span>HWP-09</span>
+            </div>
+            <div className="text-[10px] text-slate-500">Highway &bull; Active</div>
+          </div>
+        </div>
+
+        {radioPingSuccess && (
+          <div className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded border border-emerald-200 flex items-center gap-1.5 animate-in fade-in">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Radio advisory broadcast acknowledged by patrol units.
           </div>
         )}
+      </div>
 
-        {/* Action Choice Tabs */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
-          <button
-            type="button"
-            onClick={() => setActiveTab("found")}
-            className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-              activeTab === "found"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>SUBJECT FOUND / RECOVERED</span>
-          </button>
+      {/* COLLAPSIBLE SECTION: MANUAL INCIDENT FILING (FALLBACK) */}
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setShowManualForm(!showManualForm)}
+          className="w-full p-3 bg-slate-50/70 hover:bg-slate-100/70 text-left flex items-center justify-between transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-semibold text-slate-700">
+              Manual Intercept Filing (Command Console Fallback)
+            </span>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showManualForm ? "rotate-180" : ""}`} />
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("not_found")}
-            className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-              activeTab === "not_found"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span>AREA SWEPT - NOT LOCATED</span>
-          </button>
-        </div>
-
-        {/* Tab 1: Subject Found Form */}
-        {activeTab === "found" && (
-          <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-200 space-y-4">
-            <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
-              <CheckCircle className="w-4 h-4 text-emerald-600" />
-              <span>Positive Intercept Verification & Safe Recovery Filing</span>
+        {showManualForm && (
+          <div className="p-4 border-t border-slate-100 space-y-3">
+            {/* Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setManualTab("found")}
+                className={`py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
+                  manualTab === "found" ? "bg-white text-emerald-700 shadow-2xs" : "text-slate-600"
+                }`}
+              >
+                Subject Found / Recovered
+              </button>
+              <button
+                type="button"
+                onClick={() => setManualTab("not_found")}
+                className={`py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
+                  manualTab === "not_found" ? "bg-white text-amber-700 shadow-2xs" : "text-slate-600"
+                }`}
+              >
+                Area Swept / Negative Contact
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Reporting Unit Call sign</label>
-                <select
-                  value={unitCallsign}
-                  onChange={(e) => setUnitCallsign(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                >
-                  <option value="PCR-04">PCR-04 (Sector Beat Mobile Patrol)</option>
-                  <option value="RPF-02">RPF-02 (Transit & Railway Police)</option>
-                  <option value="HWP-09">HWP-09 (Highway Corridor Checkpoint)</option>
-                  <option value="CID-01">CID-01 (Special Crime Investigation)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Lead Officer Name</label>
-                <Input
-                  value={officerName}
-                  onChange={(e) => setOfficerName(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-9"
-                  placeholder="Officer name..."
-                />
-              </div>
-
-              <div className="space-y-1 sm:col-span-2">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Confirmed Recovery Location</label>
-                <div className="relative">
-                  <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-600" />
-                  <Input
-                    value={recoveryLocation}
-                    onChange={(e) => setRecoveryLocation(e.target.value)}
-                    className="bg-white border-slate-200 pl-8 text-xs h-9"
-                    placeholder="Specific landmark or street..."
+            {manualTab === "found" ? (
+              <div className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-semibold uppercase">Unit Callsign</label>
+                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} className="h-8 text-xs mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-semibold uppercase">Lead Officer</label>
+                    <Input value={officerName} onChange={(e) => setOfficerName(e.target.value)} className="h-8 text-xs mt-1" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-semibold uppercase">Recovery Location</label>
+                  <Input value={recoveryLocation} onChange={(e) => setRecoveryLocation(e.target.value)} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-semibold uppercase">Log Notes</label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-800 mt-1 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-1 sm:col-span-2">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Child&apos;s Current Condition</label>
-                <select
-                  value={condition}
-                  onChange={(e) => setCondition(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                <Button
+                  onClick={handleManualSubmit}
+                  disabled={submittingManual}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold h-8 rounded-lg"
                 >
-                  <option value="Safe and uninjured">Safe and uninjured</option>
-                  <option value="Mild dehydration / receiving oral rehydration">Mild dehydration / receiving oral rehydration</option>
-                  <option value="Undergoing routine checkup at District Hospital">Undergoing routine checkup at District Hospital</option>
-                  <option value="Reunited with family / guardian">Reunited with family / guardian</option>
-                </select>
+                  {submittingManual ? "Submitting..." : "Confirm Recovery & Close Alert"}
+                </Button>
               </div>
-
-              <div className="space-y-1 sm:col-span-2">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Field Officer Report & Log Notes</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 leading-relaxed"
-                  placeholder="Officer observations, guardian notification notes..."
-                />
+            ) : (
+              <div className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-semibold uppercase">Unit Callsign</label>
+                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} className="h-8 text-xs mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-semibold uppercase">Swept Area</label>
+                    <Input value={sweptArea} onChange={(e) => setSweptArea(e.target.value)} className="h-8 text-xs mt-1" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-semibold uppercase">Sweep Notes</label>
+                  <textarea
+                    value={notFoundNotes}
+                    onChange={(e) => setNotFoundNotes(e.target.value)}
+                    rows={2}
+                    className="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs text-slate-800 mt-1 focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+                <Button
+                  onClick={handleManualSubmit}
+                  disabled={submittingManual}
+                  className="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold h-8 rounded-lg"
+                >
+                  {submittingManual ? "Submitting..." : "Log Negative Sweep & Expand Perimeter"}
+                </Button>
               </div>
-            </div>
-
-            <Button
-              onClick={handleReportOutcome}
-              disabled={submitting}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 gap-2 rounded-xl shadow-xs"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>COMMITTING TO CRYPTOGRAPHIC AUDIT LEDGER...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Confirm Subject Safely Recovered & Close Alert</span>
-                </>
-              )}
-            </Button>
+            )}
           </div>
         )}
+      </div>
 
-        {/* Tab 2: Area Swept - Not Located Form */}
-        {activeTab === "not_found" && (
-          <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200 space-y-4">
-            <div className="flex items-center gap-2 text-amber-800 text-xs font-bold">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
-              <span>Negative Contact Log & Search Perimeter Expansion</span>
+      {/* DISCREET DEVELOPER WEBHOOK TRIGGER */}
+      <div className="pt-1 text-center">
+        <button
+          type="button"
+          onClick={() => setShowDevTool(!showDevTool)}
+          className="text-[10px] font-mono text-slate-400 hover:text-slate-600 underline"
+        >
+          {showDevTool ? "Hide Developer Webhook Simulator" : "Developer Webhook Tool (Simulate Inbound SMS without Phone)"}
+        </button>
+
+        {showDevTool && (
+          <div className="mt-2 p-3 rounded-lg bg-slate-50 border border-slate-200 text-left space-y-2">
+            <span className="text-[10px] font-mono text-slate-500 uppercase block font-semibold">
+              Trigger /api/twilio/webhook manually:
+            </span>
+            <div className="flex gap-2">
+              <Input
+                value={devReplyText}
+                onChange={(e) => setDevReplyText(e.target.value)}
+                placeholder="e.g. FOUND at station"
+                className="h-8 text-xs font-mono bg-white"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={devSending || !devReplyText.trim()}
+                onClick={() => {
+                  handleTriggerDevReply(devReplyText);
+                  setDevReplyText("");
+                }}
+                className="h-8 text-xs font-mono shrink-0"
+              >
+                Send Webhook
+              </Button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Sweeping Unit Call sign</label>
-                <select
-                  value={unitCallsign}
-                  onChange={(e) => setUnitCallsign(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                >
-                  <option value="PCR-04">PCR-04 (Sector Beat Mobile Patrol)</option>
-                  <option value="RPF-02">RPF-02 (Transit & Railway Police)</option>
-                  <option value="HWP-09">HWP-09 (Highway Corridor Checkpoint)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Reporting Officer</label>
-                <Input
-                  value={officerName}
-                  onChange={(e) => setOfficerName(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-9"
-                  placeholder="Officer name..."
-                />
-              </div>
-
-              <div className="space-y-1 sm:col-span-2">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Area / Perimeter Swept</label>
-                <Input
-                  value={sweptArea}
-                  onChange={(e) => setSweptArea(e.target.value)}
-                  className="bg-white border-slate-200 text-xs h-9"
-                  placeholder="Area bounds swept..."
-                />
-              </div>
-
-              <div className="space-y-1 sm:col-span-2">
-                <label className="font-mono text-[10px] text-slate-500 uppercase font-semibold">Field Sweep Intelligence & Directional Clues</label>
-                <textarea
-                  value={notFoundNotes}
-                  onChange={(e) => setNotFoundNotes(e.target.value)}
-                  rows={2}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 leading-relaxed"
-                  placeholder="Observations, CCTV review, witness interviews..."
-                />
-              </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleTriggerDevReply("FOUND Subject safe at Panaji Terminal")}
+                className="text-[10px] font-mono text-emerald-600 hover:underline"
+              >
+                [Quick FOUND]
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTriggerDevReply("NOT FOUND Platform swept negative")}
+                className="text-[10px] font-mono text-amber-600 hover:underline"
+              >
+                [Quick NOT FOUND]
+              </button>
             </div>
-
-            <Button
-              onClick={handleReportOutcome}
-              disabled={submitting}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-10 gap-2 rounded-xl shadow-xs"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>LOGGING TO AUDIT TRAIL...</span>
-                </>
-              ) : (
-                <>
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>Log Negative Sweep & Expand Search Perimeter</span>
-                </>
-              )}
-            </Button>
           </div>
         )}
-
       </div>
 
     </div>
@@ -485,21 +600,26 @@ export default function FieldInterceptConsole({
 
   if (isModal) {
     return (
-      <div className="fixed inset-0 z-[1000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 relative">
-          <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+      <div className="fixed inset-0 z-[1000] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full p-5 relative max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-blue-600 font-bold">
-                TACTICAL INCIDENT DISPATCH & RESOLUTION
-              </span>
-              <h2 className="font-display text-lg font-extrabold text-slate-900">
-                Ground Intercept Comms & Outcome Uplink
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-blue-600 font-bold">
+                  TACTICAL FIELD DISPATCH & INCIDENT COMMS
+                </span>
+                <Badge variant="outline" className="text-[10px] font-mono bg-slate-50 text-slate-600 border-slate-200">
+                  {caseData.caseId}
+                </Badge>
+              </div>
+              <h2 className="text-base font-bold text-slate-900 mt-0.5">
+                Ground Intercept Telemetry & Uplink
               </h2>
             </div>
             {onClose && (
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center"
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -512,7 +632,7 @@ export default function FieldInterceptConsole({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs">
       {content}
     </div>
   );

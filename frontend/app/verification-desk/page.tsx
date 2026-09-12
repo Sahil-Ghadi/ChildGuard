@@ -351,14 +351,29 @@ export default function VerificationDesk() {
           {/* Sighting Queue Navigation Strip */}
           <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-xs">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-              <span className="text-xs font-mono font-bold text-slate-800">
-                REVIEWING LEAD {activeSightingIndex + 1} OF {sightings.length}
-              </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-xs text-slate-500">
-                Current Status: <strong className="uppercase text-slate-800 font-mono">{activeSighting.status || "PENDING"}</strong>
-              </span>
+              {activeCase.status === "found" ? (
+                <>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-mono font-bold text-emerald-800">
+                    ARCHIVAL FORENSIC DOSSIER • CASE RESOLVED
+                  </span>
+                  <span className="text-slate-300">|</span>
+                  <span className="text-xs text-slate-500">
+                    Resolution Status: <strong className="uppercase text-emerald-700 font-mono">SAFELY RECOVERED & CLOSED</strong>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+                  <span className="text-xs font-mono font-bold text-slate-800">
+                    REVIEWING LEAD {activeSightingIndex + 1} OF {sightings.length}
+                  </span>
+                  <span className="text-slate-300">|</span>
+                  <span className="text-xs text-slate-500">
+                    Current Status: <strong className="uppercase text-slate-800 font-mono">{activeSighting.status || "PENDING"}</strong>
+                  </span>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -490,7 +505,26 @@ export default function VerificationDesk() {
 
                 {/* Primary Intercept Actions */}
                 <div className="pt-2">
-                  {activeSighting.status === "dispatched" ? (
+                  {activeCase.status === "found" ? (
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2.5">
+                      <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-sm">
+                        <ShieldCheck className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-emerald-900 block font-mono uppercase">
+                          Investigation Closed • Subject Secured
+                        </span>
+                        <p className="text-xs text-slate-600">
+                          {activeCase.childName} was located and secured by <strong>{activeCase.recoveryOfficer || "Patrol Unit PCR-04"}</strong>.
+                        </p>
+                      </div>
+                      <Link href="/dashboard" className="block pt-1">
+                        <Button size="sm" className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs h-9 rounded-lg shadow-xs">
+                          View Dossier on Command Dashboard
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : activeSighting.status === "dispatched" ? (
                     <div className="space-y-2.5">
                       <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs space-y-1">
                         <div className="flex items-center gap-1.5 font-bold font-mono text-[11px] text-blue-700">
