@@ -42,17 +42,27 @@ export type CaseData = {
     probability: number;
     similarCasesCount: number;
     basedOn: string[];
+    ahtuUnit?: string;
+    ncrbZone?: string;
+    corridorType?: string;
+    reasoning?: string;
   };
   traffickingMatches?: Array<{
-    corridorId: string;
-    corridorName: string;
+    registryId?: string;
+    state?: string;
+    corridor?: string;
+    flagReason?: string;
+    matchConfidence?: number;
+    statutoryNotice?: string;
+    corridorId?: string;
+    corridorName?: string;
     highwayTransit?: string;
-    sourceDestination: string;
-    riskTier: string;
-    nodalAHTU: string;
-    surveillanceNodes: string[];
-    statutoryBasis: string;
-    tacticalRecommendation: string;
+    sourceDestination?: string;
+    riskTier?: string;
+    nodalAHTU?: string;
+    surveillanceNodes?: string[];
+    statutoryBasis?: string;
+    tacticalRecommendation?: string;
   }>;
   alertDistributed?: boolean;
   auditLog?: Array<{

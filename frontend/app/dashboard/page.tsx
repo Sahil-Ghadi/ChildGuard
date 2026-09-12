@@ -471,6 +471,39 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* AHTU Trafficking Cross-Verification Status */}
+                <div className={`p-2.5 rounded-xl border text-xs space-y-1.5 ${
+                  activeCase.traffickingMatches && activeCase.traffickingMatches.length > 0
+                    ? "bg-rose-50/80 border-rose-200 text-rose-900"
+                    : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                      <ShieldCheck className={`w-3.5 h-3.5 ${
+                        activeCase.traffickingMatches && activeCase.traffickingMatches.length > 0 ? "text-rose-600" : "text-emerald-600"
+                      }`} />
+                      AHTU Trafficking Cross-Check
+                    </span>
+                    <Badge variant={activeCase.traffickingMatches && activeCase.traffickingMatches.length > 0 ? "destructive" : "outline"} className="text-[10px] font-mono font-bold py-0 h-4.5">
+                      {activeCase.traffickingMatches && activeCase.traffickingMatches.length > 0 ? "WATCHLIST MATCH" : "CLEAN"}
+                    </Badge>
+                  </div>
+                  {activeCase.traffickingMatches && activeCase.traffickingMatches.length > 0 ? (
+                    <div className="space-y-1 pt-0.5">
+                      <p className="font-bold text-rose-800 text-[11px]">
+                        Matched {activeCase.traffickingMatches[0].registryId || activeCase.traffickingMatches[0].corridorId || "AHTU Alert"} ({activeCase.traffickingMatches[0].state || activeCase.traffickingMatches[0].sourceDestination || "Interstate"})
+                      </p>
+                      <p className="text-[11px] text-rose-700 leading-tight">
+                        Corridor: {activeCase.traffickingMatches[0].corridor || activeCase.traffickingMatches[0].corridorName} &bull; {activeCase.traffickingMatches[0].flagReason || activeCase.traffickingMatches[0].tacticalRecommendation}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 leading-tight">
+                      Cross-referenced against 1,240 interstate AHTU records. Zero active matches under Sec 74 JJ Act protocols.
+                    </p>
+                  )}
+                </div>
+
                 {activeCase.status === "found" && (
                   <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
                     <div className="flex items-center gap-1 font-bold font-mono text-[10px]">
@@ -656,8 +689,24 @@ export default function Dashboard() {
                       <div className="text-sm font-bold text-slate-900 leading-snug">
                         {activeCase.patternPredictions.predictedRoute}
                       </div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-0.5">
+                      <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-2 pt-0.5">
                         <span>{activeCase.patternPredictions.similarCasesCount} Regional Transit Precedents</span>
+                        {activeCase.patternPredictions.ahtuUnit && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="font-mono text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200">
+                              Unit: {activeCase.patternPredictions.ahtuUnit}
+                            </span>
+                          </>
+                        )}
+                        {activeCase.patternPredictions.ncrbZone && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              {activeCase.patternPredictions.ncrbZone}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

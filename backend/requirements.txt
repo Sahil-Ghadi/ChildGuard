@@ -5,10 +5,6 @@ pydantic
 python-dotenv
 langgraph
 langchain-google-genai
-Pillow
-opencv-python-headless
-scikit-learn
-pandas
 twilio
 python-multipart
-google.generativeai
+google-generativeai
