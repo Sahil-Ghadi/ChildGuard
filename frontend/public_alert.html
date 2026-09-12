@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ChildGuard — National Child Recovery Network</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              navy: '#0F172A',
+              slate: '#1E293B',
+              muted: '#64748B',
+              soft: '#F8FAFC',
+              border: '#E2E8F0',
+              accent: '#E11D48',
+              accentSoft: '#FFF1F2',
+              emerald: '#059669',
+              emeraldSoft: '#ECFDF5',
+              blueSoft: '#EFF6FF',
+            }
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overscroll-behavior: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 min-h-screen antialiased flex flex-col justify-between">
+<!-- Header -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+<!-- Logo -->
+<a class="flex items-center gap-3 group" href="#">
+<img alt="ChildGuard National Rescue Network Logo" class="h-9 w-auto object-contain transition-transform group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1VpF3Q4Yz5YmPO2auLEdfJNL37ayoT_HZK8ftiHyJDborc5bc4J8c57KI8N8hr6BM-AquI4VL7FLmMRJVzjqU1YBUdLDziiskMPfJohCx0KOL1Yfib9J18RekRJZkt3vzgLTrDOBFInfb9nzaVxGxFlSIME-E4X94FCh-4mipBhtREBEYZ16LNbUDmruC6O5Krh5cjkv-yOcY12wvSkINd3EiI2_uPBjVpkZhXRyZNk-0HH7SuIyO54Uw">
+</a>
+<!-- Clean Navigation -->
+<nav class="hidden md:flex items-center gap-1 p-1.5 bg-slate-50 border border-slate-200/60 rounded-full"><a class="px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-900 bg-slate-100 transition-colors" href="#">Active Alerts</a><a class="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors" href="#report" id="navReportBtn">Report a Sighting</a><a class="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors" href="#command">Tactical Command</a><a class="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors" href="#verify">Verification Desk</a><a class="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors" href="#resources">Resources</a></nav>
+<!-- Emergency Helpline CTA -->
+<div class="flex items-center gap-3"><a class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors border border-rose-100 shadow-sm" href="tel:112"><span class="material-symbols-outlined text-[16px] text-rose-600">call</span><span class="">112 Emergency</span></a><button class="relative p-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Notifications"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span></button><button class="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border border-slate-200 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700"><div class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">ND</div><span class="hidden sm:inline text-slate-800 font-semibold">Officer Desk</span></button></div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+<!-- Hero Missing Person Showcase Card -->
+<div class="bg-white rounded-2xl p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm relative overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+<!-- Photo Column -->
+<div class="lg:col-span-5 flex flex-col items-center">
+<div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-md bg-slate-100 aspect-square">
+<img alt="Priya Sharma missing child alert photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XToV2EHWWyk3MO-2isZoFgUh7LqcbkAb3CevT-abTp3hH9obMDpwTsvubtn56R60W3xNgDHbBxUkFs3Ndg11d75k1fsmbLMOlruV72SCWSuf5A4CJxnakBGPuUAvbcVTJ_ewtsYRECjFOHPxdNxoNciOTtQ68235rxotqDeTTaBjfI9T8Jw70WGDZ5toGusyg2iM5AF-A_h1FJdV577l9__EjgLGkUmH7Hv8N5rE-JzcAlX1sN1xaNAqc">
+<div class="absolute top-4 left-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-600/90 text-white backdrop-blur-sm shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                Active Alert
+              </span>
+</div>
+<div class="absolute bottom-4 right-4">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                Verified Guardian
+              </span>
+</div>
+</div>
+</div>
+<!-- Details & Primary Actions Column -->
+<div class="lg:col-span-7 flex flex-col justify-center space-y-6">
+<div>
+<div class="flex flex-wrap items-center gap-3 mb-2">
+<span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Case #CG-2026-0894</span>
+<span class="text-slate-300">•</span>
+<span class="text-xs font-medium text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full font-semibold">Priority Incident</span>
+</div>
+<div class="flex items-baseline gap-3 flex-wrap">
+<h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">Priya Sharma</h1>
+<span class="text-lg font-medium text-slate-500">7 years old • Female</span>
+</div>
+<p class="mt-2 text-slate-600 text-sm sm:text-base leading-relaxed">
+              Reported missing near Kashmere Gate terminal. Multi-jurisdiction search actively coordinated with local transit officers and civil defense.
+            </p>
+</div>
+<!-- Key vital details grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+<div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Last Seen</span>
+<p class="text-sm font-semibold text-slate-900">Kashmere Gate, Delhi</p>
+<span class="text-xs text-slate-500">Today at 2:30 PM</span>
+</div>
+<div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Wearing</span>
+<p class="text-sm font-semibold text-slate-900">Red t-shirt, blue jeans</p>
+<span class="text-xs text-slate-500">White sneakers</span>
+</div>
+<div class="p-4 rounded-xl bg-slate-50 border border-slate-100 sm:col-span-2">
+<span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Key Markers</span>
+<p class="text-sm font-semibold text-slate-900">Responds to "Pihu"</p>
+<span class="text-xs text-slate-500">Mole below left eye • Ponytail</span>
+</div>
+</div>
+<!-- Actions Bar -->
+<div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+<button class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 px-6 rounded-xl transition shadow-sm hover:shadow flex items-center justify-center gap-2" id="reportSightingBtn">
+<span class="material-symbols-outlined text-[20px]">share_location</span>
+<span class="">Report a Sighting</span>
+</button>
+<button class="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 px-5 rounded-xl transition" id="whatsappShareBtn">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="">Share Alert</span>
+</button>
+<a class="inline-flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold py-3.5 px-5 rounded-xl transition" href="tel:112">
+<span class="material-symbols-outlined text-rose-600 text-[20px]">call</span>
+<span class="">112 Direct</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Sighting Map & Activity Feed -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Interactive Clean Map -->
+<div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h2 class="text-lg font-bold text-slate-900">Sighting Radius &amp; Corridors</h2>
+<p class="text-sm text-slate-500">Active alerts mapped across local transport hubs</p>
+</div>
+<div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+<span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Last Known</span>
+<span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Verified Sighting</span>
+</div>
+</div>
+<!-- Clean Map Representation -->
+<div class="relative w-full h-80 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuADRTJhUPVfkSAofK9bVqO8pEXZ2Bvmv_BR4my0mbfPJ922XU_4DIzvaYxJSzbfYwO-krGgXcFByLI-ySF3iD6d-FU-NAhbezMv997___uBCgYpnvQkYjSZX_pBV4wvUQpO0t78s6fMrBnPlvoH_ouTkDdq9Uk6KXLMcpmxJjM84MsiDPZG08G36F8ptdFNZwrk2tOx23JvKpI84413MAe-8NmldjpTZY2ZtGUA-eXeB2UYW_9dupd9'); filter: contrast(0.95) brightness(1.02);"></div>
+<!-- Soft Map Overlay -->
+<div class="absolute inset-0 bg-slate-900/10 pointer-events-none"></div>
+<!-- Clean Pins -->
+<!-- Pin 1: Last Known -->
+<div class="absolute top-[52%] left-[34%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
+<div class="relative flex items-center justify-center">
+<span class="absolute w-7 h-7 rounded-full bg-rose-500/30 animate-ping"></span>
+<div class="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-bold shadow-md ring-2 ring-white">
+                ●
+              </div>
+</div>
+<div class="mt-1 bg-white/95 backdrop-blur-sm border border-slate-100 text-slate-800 text-xs px-2 py-1 rounded-md shadow-sm font-medium whitespace-nowrap">
+              Delhi Gate • 2:30 PM
+            </div>
+</div>
+<!-- Pin 2: Kashmere Gate -->
+<div class="absolute top-[38%] left-[50%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
+<div class="bg-white/95 backdrop-blur-sm border border-slate-100 text-slate-800 px-2.5 py-1.5 rounded-lg shadow-md flex items-center gap-2 hover:scale-105 transition-transform">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+<div class="text-left">
+<span class="text-xs font-semibold block text-slate-900">Kashmere Gate Metro</span>
+<span class="text-[11px] text-slate-500">Sighted 4m ago</span>
+</div>
+</div>
+</div>
+<!-- Pin 3: Sarai Kale Khan -->
+<div class="absolute top-[65%] left-[72%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
+<div class="bg-white/95 backdrop-blur-sm border border-slate-100 text-slate-800 px-2.5 py-1.5 rounded-lg shadow-md flex items-center gap-2 hover:scale-105 transition-transform">
+<span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+<div class="text-left">
+<span class="text-xs font-medium block text-slate-900">Interstate Bus Hub</span>
+<span class="text-[11px] text-slate-500">Reported 18m ago</span>
+</div>
+</div>
+</div>
+<!-- Simple Bottom Info Pill -->
+<div class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm text-xs font-medium text-slate-600 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-slate-400">near_me</span>
+            Search perimeter: 8.4 km radius active
+          </div>
+</div>
+</div>
+<!-- Recent Sightings Timeline Card -->
+<div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-slate-900">Recent Sighting Reports</h3>
+<span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">3 Reports</span>
+</div>
+<div class="space-y-3">
+<!-- Sighting 1 -->
+<div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Verified • Police En Route
+                </span>
+<span class="text-xs text-slate-400 font-medium">4 mins ago</span>
+</div>
+<p class="text-xs text-slate-700 leading-relaxed mt-1.5 font-medium">
+                "Child matching description seen near Metro Escalator Gate 3 holding a cartoon bottle. Looked confused."
+              </p>
+<div class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                Kashmere Gate Metro Station
+              </div>
+</div>
+<!-- Sighting 2 -->
+<div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                  Under Officer Review
+                </span>
+<span class="text-xs text-slate-400 font-medium">18 mins ago</span>
+</div>
+<p class="text-xs text-slate-700 leading-relaxed mt-1.5">
+                "Girl in yellow motif red t-shirt seen walking past bus bay #4 heading toward Sarai Kale Khan platform."
+              </p>
+<div class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                Sarai Kale Khan Terminal
+              </div>
+</div>
+<!-- Sighting 3 -->
+<div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-medium text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-md">
+                  Low Certainty
+                </span>
+<span class="text-xs text-slate-400 font-medium">36 mins ago</span>
+</div>
+<p class="text-xs text-slate-600 leading-relaxed mt-1.5">
+                "Child seen near sports pavilion with adult. Clothing reported as orange shirt."
+              </p>
+<div class="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                North Campus Pavilion
+              </div>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition flex items-center justify-center gap-2" id="quickUploadTrigger">
+<span class="material-symbols-outlined text-[16px]">add_photo_alternate</span>
+          Upload Bystander Photograph
+        </button>
+</div>
+</div>
+</main>
+<!-- Clean Modal for Submitting Sighting -->
+<div class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4" id="sightingModal">
+<div class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col">
+<div class="p-6 border-b border-slate-100 flex items-center justify-between">
+<div>
+<h2 class="text-lg font-bold text-slate-900">Report a Sighting</h2>
+<p class="text-xs text-slate-500">Case #CG-2026-0894 • Priya Sharma</p>
+</div>
+<button class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" id="closeModalBtn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<form class="p-6 space-y-4" id="sightingForm">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Exact Location / Landmark *</label>
+<input class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900" placeholder="e.g. Metro Gate 3, near ticket counters" required="" type="text">
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Time Sighted *</label>
+<input class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900" required="" type="time" value="16:15">
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Accompanied By</label>
+<select class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white">
+<option>Alone / Unattended</option>
+<option>With Adult Male</option>
+<option>With Adult Female</option>
+<option>In Vehicle / Bus</option>
+<option>Not Certain</option>
+</select>
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Notes &amp; Description *</label>
+<textarea class="w-full p-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900" placeholder="Condition of child, specific direction headed, clothing changes..." required="" rows="3"></textarea>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Your Phone Number (Confidential Verification) *</label>
+<input class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900" placeholder="+91 98765 43210" required="" type="tel">
+</div>
+<div class="pt-2 flex items-center justify-end gap-3">
+<button class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition" id="cancelModalBtn" type="button">Cancel</button>
+<button class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition" type="submit">Transmit Sighting</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Reassuring Minimalist Footer -->
+<footer class="w-full bg-white border-t border-slate-100 mt-12 py-10" id="resources">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-100">
+<!-- Brand & Mission Statement -->
+<div class="space-y-1 text-center md:text-left">
+<div class="flex items-center justify-center md:justify-start gap-2">
+<span class="material-symbols-outlined text-slate-900 text-[22px]">shield</span>
+<span class="font-bold text-slate-900 text-base">ChildGuard Rescue Network</span>
+</div>
+<p class="text-xs text-slate-500 max-w-md">
+            Directly connected with State Police Dispatch and certified child protection agencies nationwide.
+          </p>
+</div>
+<!-- Reassuring Emergency Helpline Badges -->
+<div class="flex flex-wrap items-center justify-center gap-4">
+<div class="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left">
+<span class="material-symbols-outlined text-rose-600 text-[20px]">local_police</span>
+<div>
+<span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Police Dispatch</span>
+<a class="text-sm font-bold text-slate-900 hover:underline" href="tel:112">112 (Toll-Free)</a>
+</div>
+</div>
+<div class="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left">
+<span class="material-symbols-outlined text-blue-600 text-[20px]">support_agent</span>
+<div>
+<span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Childline National</span>
+<a class="text-sm font-bold text-slate-900 hover:underline" href="tel:1098">1098 (Dedicated)</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Legal & Privacy -->
+<div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+<p class="">© 2025 ChildGuard Network. Compliant with POCSO guidelines &amp; juvenile privacy standards.</p>
+<div class="flex items-center gap-6">
+<a class="hover:text-slate-600 transition-colors" href="#">Privacy Notice</a>
+<a class="hover:text-slate-600 transition-colors" href="#">Volunteer Grid</a>
+<a class="hover:text-slate-600 transition-colors" href="#">Officer Desk</a>
+</div>
+</div>
+</div>
+</footer>
+<script>
+    (function() {
+      const modal = document.getElementById('sightingModal');
+      const reportBtn = document.getElementById('reportSightingBtn');
+      const navReportBtn = document.getElementById('navReportBtn');
+      const quickUploadTrigger = document.getElementById('quickUploadTrigger');
+      const closeBtn = document.getElementById('closeModalBtn');
+      const cancelBtn = document.getElementById('cancelModalBtn');
+      const sightingForm = document.getElementById('sightingForm');
+      const whatsappBtn = document.getElementById('whatsappShareBtn');
+
+      function openModal() {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (reportBtn) reportBtn.addEventListener('click', openModal);
+      if (navReportBtn) navReportBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openModal();
+      });
+      if (quickUploadTrigger) quickUploadTrigger.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeModal();
+        }
+      });
+
+      if (sightingForm) {
+        sightingForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          alert('Report received. Information transmitted immediately to State Patrol and transit checkpoints.');
+          closeModal();
+        });
+      }
+
+      if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', function() {
+          const text = encodeURIComponent('AMBER ALERT: Priya Sharma (7yo) missing from Kashmere Gate, Delhi since 2:30 PM. Wearing red t-shirt, blue jeans. Call 112 or report sightings via ChildGuard Network.');
+          window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
+        });
+      }
+    })();
+  </script>
+
+
+</body></html>
