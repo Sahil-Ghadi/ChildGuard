@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+firebase-admin
+pydantic
+python-dotenv
+langgraph
+langchain-google-genai
+Pillow
+opencv-python-headless
+scikit-learn
+pandas
