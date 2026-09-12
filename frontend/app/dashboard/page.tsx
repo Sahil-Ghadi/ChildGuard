@@ -31,10 +31,12 @@ import {
   FileText,
   User,
   PhoneCall,
-  ShieldCheck
+  ShieldCheck,
+  Printer
 } from "lucide-react";
 import Link from "next/link";
 import FieldInterceptConsole from "@/components/FieldInterceptConsole";
+import EmergencyPosterModal from "@/components/EmergencyPosterModal";
 
 function riskBadgeVariant(score: string) {
   switch (score) {
@@ -66,6 +68,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"open" | "found" | "closed">("open");
   const [showCommsModal, setShowCommsModal] = useState(false);
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
@@ -406,6 +409,14 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={() => setShowPosterModal(true)}
+              variant="outline"
+              className="text-slate-700 hover:text-slate-900 border-slate-300 text-xs h-9 gap-1.5 rounded-lg"
+            >
+              <Printer className="w-3.5 h-3.5 text-slate-600" />
+              <span>Emergency Flyer</span>
+            </Button>
             <Button
               onClick={() => setShowCommsModal(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 gap-1.5 rounded-lg"
@@ -761,6 +772,13 @@ export default function Dashboard() {
           }}
         />
       )}
+
+      {/* Emergency Police Bulletin Flyer Modal */}
+      <EmergencyPosterModal
+        caseData={activeCase}
+        isOpen={showPosterModal}
+        onClose={() => setShowPosterModal(false)}
+      />
 
     </div>
   );

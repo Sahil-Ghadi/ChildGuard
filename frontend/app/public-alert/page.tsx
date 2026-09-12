@@ -20,15 +20,18 @@ import {
   Radio,
   ShieldAlert,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Printer
 } from "lucide-react";
 import Link from "next/link";
+import EmergencyPosterModal from "@/components/EmergencyPosterModal";
 
 export default function PublicAlert() {
   const [cases, setCases] = useState<CaseData[]>([]);
   const [sightings, setSightings] = useState<SightingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   useEffect(() => {
     apiFetch("/api/cases?status=open")
@@ -235,11 +238,20 @@ export default function PublicAlert() {
                   </Button>
                 </Link>
 
-                <div className="flex flex-col sm:flex-row gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowPosterModal(true)}
+                    className="h-11 rounded-xl border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-blue-900 font-semibold text-xs gap-2 shadow-xs transition-colors"
+                  >
+                    <Printer className="w-4 h-4 text-blue-700" />
+                    <span>Print Police Bulletin</span>
+                  </Button>
+
                   <Button 
                     variant="outline" 
                     onClick={handleShare}
-                    className="flex-1 h-11 rounded-xl border-slate-300 font-semibold text-xs gap-2 text-slate-700 hover:bg-slate-50"
+                    className="h-11 rounded-xl border-slate-300 font-semibold text-xs gap-2 text-slate-700 hover:bg-slate-50"
                   >
                     <Share2 className="w-4 h-4 text-slate-500" />
                     <span>{copied ? "Link Copied!" : "Share Alert"}</span>
@@ -248,11 +260,11 @@ export default function PublicAlert() {
                   <Button 
                     variant="outline" 
                     asChild
-                    className="flex-1 h-11 rounded-xl border-slate-300 font-semibold text-xs gap-2 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                    className="h-11 rounded-xl border-slate-300 font-semibold text-xs gap-2 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
                   >
                     <a href="tel:112">
                       <Phone className="w-4 h-4 text-rose-600" />
-                      <span>Call Police Emergency (112)</span>
+                      <span>Call 112 (Police)</span>
                     </a>
                   </Button>
                 </div>
@@ -352,6 +364,13 @@ export default function PublicAlert() {
         </div>
 
       </div>
+
+      {/* Emergency Police Poster / Bulletin Modal */}
+      <EmergencyPosterModal
+        caseData={activeCase}
+        isOpen={showPosterModal}
+        onClose={() => setShowPosterModal(false)}
+      />
 
     </div>
   );

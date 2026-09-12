@@ -58,3 +58,18 @@ body {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+/* Print optimization for Emergency Police Bulletin */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+  @page {
+    margin: 0.8cm;
+    size: A4 portrait;
+  }
+}

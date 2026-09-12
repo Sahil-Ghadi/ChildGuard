@@ -26,9 +26,9 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = user ? [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Command Center", path: "/dashboard", icon: LayoutDashboard },
     { name: "Register Case", path: "/register-case", icon: FilePlus },
-    { name: "Verify Sightings", path: "/verification-desk", icon: CheckCircle2 },
+    { name: "Verification Desk", path: "/verification-desk", icon: CheckCircle2 },
     { name: "Active Alerts", path: "/public-alert", icon: Radio },
   ] : [
     { name: "Active Alerts", path: "/public-alert", icon: Radio },

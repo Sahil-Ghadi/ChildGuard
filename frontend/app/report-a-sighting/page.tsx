@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { uploadOrEncodePhoto } from "@/lib/image-upload";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,7 +32,11 @@ import {
   Eye,
   ShieldCheck,
   Check,
-  Crosshair
+  Crosshair,
+  Mic,
+  Square,
+  Sparkles,
+  AudioLines
 } from "lucide-react";
 import Link from "next/link";
 
@@ -65,6 +69,125 @@ function ReportSightingContent() {
   });
   const [resolvingAddress, setResolvingAddress] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  // Voice recording & Gemini 3.5 Flash transcription state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const [voiceResult, setVoiceResult] = useState<{
+    transcript: string;
+    clothing?: string;
+    accompaniedBy?: string;
+    directionOfTravel?: string;
+    urgency?: string;
+    summary?: string;
+  } | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    setError("");
+    setVoiceResult(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const mimeType = mediaRecorder.mimeType || "audio/webm";
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+
+        stream.getTracks().forEach((track) => track.stop());
+
+        await processVoiceNote(blob, mimeType);
+      };
+
+      mediaRecorder.start(250);
+      setIsRecording(true);
+      setRecordingSeconds(0);
+
+      timerRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => prev + 1);
+      }, 1000);
+    } catch (err: any) {
+      console.error("Microphone access error:", err);
+      setError("Microphone permission unavailable. You can click 'Simulate Voice Clue' or type observations directly.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  const processVoiceNote = async (blob: Blob, mimeType: string) => {
+    setTranscribing(true);
+    try {
+      const audioFile = new File([blob], `voice_tip_${Date.now()}.${mimeType.includes("wav") ? "wav" : "webm"}`, { type: mimeType });
+      const bodyFormData = new FormData();
+      bodyFormData.append("file", audioFile);
+
+      const res = await fetch("http://localhost:8000/api/transcribe-voice-tip", {
+        method: "POST",
+        body: bodyFormData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Voice transcription service responded with status ${res.status}`);
+      }
+
+      const data = await res.json();
+      applyTranscriptionData(data);
+    } catch (err: any) {
+      console.error("Failed to transcribe voice note:", err);
+      setError("Voice note recorded, but AI transcription encountered an issue. You can still type details manually.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const applyTranscriptionData = (data: any) => {
+    setVoiceResult(data);
+    setFormData((prev) => {
+      let updatedDesc = prev.description;
+      if (data.transcript) {
+        const clueParts = [
+          `[Voice Eyewitness]: "${data.transcript}"`,
+          data.clothing ? `Clothing: ${data.clothing}` : "",
+          data.directionOfTravel ? `Direction / Vehicle: ${data.directionOfTravel}` : "",
+        ].filter(Boolean).join(" | ");
+        updatedDesc = prev.description ? `${prev.description}\n\n${clueParts}` : clueParts;
+      }
+      let updatedAccompanied = prev.accompanied_status;
+      if (data.accompaniedBy && ["Alone", "1 Adult (M)", "1 Adult (F)", "In Vehicle", "Unsure"].includes(data.accompaniedBy)) {
+        updatedAccompanied = data.accompaniedBy;
+      }
+      return {
+        ...prev,
+        description: updatedDesc,
+        accompanied_status: updatedAccompanied,
+      };
+    });
+  };
+
 
   useEffect(() => {
     apiFetch(`/api/cases?status=open`)
@@ -257,11 +380,25 @@ function ReportSightingContent() {
                   View Active Alerts
                 </Button>
               </Link>
-              <Link href="/" className="flex-1">
-                <Button className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs">
-                  Return to Home
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => {
+                  setSuccess(null);
+                  setFile(null);
+                  setPreviewUrl(null);
+                  setVoiceResult(null);
+                  setFormData({
+                    location_address: "",
+                    timestamp: "",
+                    accompanied_status: "Unsure",
+                    description: "",
+                    phone_callback: "",
+                    confidential: true,
+                  });
+                }}
+                className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"
+              >
+                Submit Another Tip
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -290,7 +427,7 @@ function ReportSightingContent() {
           Report a Sighting
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
-          If you have seen a child matching an active alert, submit the location and photo below. Transmitted immediately to duty officers.
+          Submit real-time photos or voice eyewitness clues. Biometric verification runs instantly.
         </p>
       </div>
 
@@ -436,7 +573,7 @@ function ReportSightingContent() {
                       <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                         <Camera className="w-6 h-6" />
                       </div>
-                      <span className="text-sm font-bold text-slate-800">Snap Photo with Camera or Drop File</span>
+                      <span className="text-sm font-bold text-slate-800">Upload or Snap Photo</span>
                       <p className="text-xs text-slate-500 max-w-sm">
                         Even partial or angled photos help our facial vector algorithms determine match probability.
                       </p>
@@ -556,19 +693,147 @@ function ReportSightingContent() {
               </CardContent>
             </Card>
 
-            {/* Step 3: Contextual Observations */}
+            {/* Step 3: Multimodal Voice Eyewitness Clue (Gemini 3.5 Flash) */}
+            <Card className="border-blue-200 shadow-sm overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
+              <CardHeader className="p-4 sm:px-6 border-b border-blue-100 bg-blue-50/50 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold font-mono">
+                    03
+                  </div>
+                  <div>
+                    <CardTitle className="font-display text-base font-bold text-slate-900 flex items-center gap-2">
+                      <span>Voice Eyewitness Clue (Optional)</span>
+                      <Badge variant="outline" className="text-[10px] font-bold border-blue-300 text-blue-700 bg-blue-50/50 gap-1">
+                        <Sparkles className="w-3 h-3 text-blue-600" />
+                        Gemini 3.5 Flash Audio
+                      </Badge>
+                    </CardTitle>
+                    <p className="text-xs text-slate-500">
+                      Speak clearly describing clothes, vehicle, or direction. AI parses intelligence automatically.
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-white border border-blue-100 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                      isRecording 
+                        ? "bg-rose-600 text-white animate-pulse shadow-md shadow-rose-600/30" 
+                        : transcribing 
+                        ? "bg-blue-100 text-blue-700 animate-bounce" 
+                        : "bg-blue-50 text-blue-600 border border-blue-200"
+                    }`}>
+                      {isRecording ? (
+                        <Mic className="w-6 h-6 animate-pulse" />
+                      ) : transcribing ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <AudioLines className="w-6 h-6" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                        <span>{isRecording ? "Listening... speak clearly" : transcribing ? "Transcribing & extracting clues..." : "Voice Note Eyewitness Tip"}</span>
+                        {isRecording && (
+                          <Badge variant="destructive" className="font-mono text-[10px] animate-pulse">
+                            REC 00:{recordingSeconds.toString().padStart(2, "0")}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isRecording 
+                          ? "Listening... speak about clothes, vehicles, or direction." 
+                          : "Speak naturally in your voice. Gemini AI extracts structured clues."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {isRecording ? (
+                      <Button
+                        type="button"
+                        onClick={stopRecording}
+                        variant="destructive"
+                        size="sm"
+                        className="h-10 px-4 rounded-xl font-bold text-xs gap-1.5 shadow-md shadow-rose-600/20"
+                      >
+                        <Square className="w-3.5 h-3.5 fill-current" />
+                        <span>Stop & Transcribe</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={startRecording}
+                        disabled={transcribing}
+                        size="sm"
+                        className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5 shadow-sm shadow-blue-500/20"
+                      >
+                        <Mic className="w-3.5 h-3.5" />
+                        <span>Record Voice Note</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Transcribed Clue Card */}
+                {voiceResult && (
+                  <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 text-slate-900 space-y-2.5 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        Gemini 3.5 Flash Audio Extracted Clues
+                      </span>
+                      {voiceResult.urgency && (
+                        <Badge variant={voiceResult.urgency === "HIGH" ? "destructive" : "warning"} className="text-[10px] font-bold uppercase">
+                          {voiceResult.urgency} Urgency
+                        </Badge>
+                      )}
+                    </div>
+
+                    <p className="text-xs italic text-slate-700 bg-white p-2.5 rounded-lg border border-emerald-100 leading-relaxed">
+                      &quot;{voiceResult.transcript}&quot;
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-1">
+                      {voiceResult.clothing && (
+                        <div className="p-2 rounded-lg bg-white/80 border border-emerald-100">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 block">Clothing</span>
+                          <span className="font-semibold text-slate-800">{voiceResult.clothing}</span>
+                        </div>
+                      )}
+                      {voiceResult.directionOfTravel && (
+                        <div className="p-2 rounded-lg bg-white/80 border border-emerald-100">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 block">Direction / Vehicle</span>
+                          <span className="font-semibold text-slate-800">{voiceResult.directionOfTravel}</span>
+                        </div>
+                      )}
+                      {voiceResult.accompaniedBy && (
+                        <div className="p-2 rounded-lg bg-white/80 border border-emerald-100">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 block">Accompanied By</span>
+                          <span className="font-semibold text-slate-800">{voiceResult.accompaniedBy}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Step 4: Contextual Observations */}
             <Card className="border-slate-200 shadow-sm overflow-hidden">
               <CardHeader className="p-4 sm:px-6 border-b border-slate-100 bg-slate-50/50">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold font-mono">
-                    03
+                    04
                   </div>
                   <div>
                     <CardTitle className="font-display text-base font-bold text-slate-900">
                       Context & Companions
                     </CardTitle>
                     <p className="text-xs text-slate-500">
-                      Note if the child was accompanied or travelling in a vehicle.
+                      Additional Observations
                     </p>
                   </div>
                 </div>
@@ -627,7 +892,7 @@ function ReportSightingContent() {
                       name="phone_callback" 
                       value={formData.phone_callback} 
                       onChange={handleInputChange} 
-                      placeholder="+91 98765 43210" 
+                      placeholder="10-digit number (e.g. +91 98765 43210) for police follow-up" 
                       className="w-full sm:w-60 h-10 text-xs bg-slate-50 border-slate-200 rounded-lg" 
                     />
                   </div>
@@ -654,7 +919,7 @@ function ReportSightingContent() {
               className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm gap-2 shadow-lg shadow-blue-500/25 lg:hidden"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              <span>Submit Verified Sighting</span>
+              <span>{loading ? "Analyzing & Verifying Sighting..." : "Submit Verified Sighting"}</span>
             </Button>
 
           </form>
@@ -735,7 +1000,7 @@ function ReportSightingContent() {
             }}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            <span>Transmit Sighting to Dispatch</span>
+            <span>{loading ? "Analyzing & Verifying Sighting..." : "Submit Verified Sighting"}</span>
           </Button>
 
           {/* Emergency Helplines Callout */}

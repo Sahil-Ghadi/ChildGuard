@@ -8,8 +8,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+import google.generativeai as genai
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -555,6 +556,85 @@ async def twilio_incoming_webhook(request: Request):
             "X-ChildGuard-Resolved": str(case_resolved)
         }
     )
+
+@app.post("/api/transcribe-voice-tip")
+async def transcribe_voice_tip(file: UploadFile = File(...)):
+    """
+    Transcribes an eyewitness voice note using Gemini 3.5 Flash audio perception,
+    extracting verbatim text, clothing observations, companions, and direction of movement.
+    """
+    try:
+        audio_bytes = await file.read()
+        if not audio_bytes:
+            raise HTTPException(status_code=400, detail="Empty audio file received.")
+
+        api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Google API key not configured for audio perception.")
+
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-3.5-flash")
+
+        content_type = file.content_type or "audio/webm"
+        if "webm" in content_type:
+            mime = "audio/webm"
+        elif "wav" in content_type:
+            mime = "audio/wav"
+        elif "mp3" in content_type or "mpeg" in content_type:
+            mime = "audio/mp3"
+        elif "ogg" in content_type:
+            mime = "audio/ogg"
+        elif "mp4" in content_type or "m4a" in content_type:
+            mime = "audio/mp4"
+        else:
+            mime = "audio/webm"
+
+        audio_part = {
+            "mime_type": mime,
+            "data": audio_bytes
+        }
+
+        prompt = (
+            "You are an AI eyewitness forensic intake agent for the ChildGuard Indian Missing Child Alert Network.\n"
+            "An eyewitness citizen recorded a voice message (in English, Hindi, Marathi, or mixed Indian vernacular) "
+            "describing a child they spotted or suspicious movements.\n\n"
+            "Analyze the audio and provide the output in pure valid JSON format with the following keys:\n"
+            "{\n"
+            '  "transcript": "Exact verbatim transcription of what the speaker said (translated to English if in Hindi or Marathi, with original quoted if helpful)",\n'
+            '  "clothing": "Description of clothing, colors, shoes, or accessories mentioned",\n'
+            '  "accompaniedBy": "One of: Alone, 1 Adult (M), 1 Adult (F), In Vehicle, or Unsure",\n'
+            '  "directionOfTravel": "Any mentioned direction, landmark, bus route number, or vehicle details",\n'
+            '  "urgency": "LOW, MEDIUM, or HIGH based on distress or movement velocity",\n'
+            '  "summary": "1 concise sentence summarizing the eyewitness clue"\n'
+            "}\n"
+            "Return ONLY the raw JSON object, no markdown code fence, no additional commentary."
+        )
+
+        response = model.generate_content([prompt, audio_part])
+        raw_text = response.text.strip()
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:]
+        if raw_text.startswith("```"):
+            raw_text = raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+        raw_text = raw_text.strip()
+
+        try:
+            parsed = json.loads(raw_text)
+            return parsed
+        except json.JSONDecodeError:
+            return {
+                "transcript": raw_text,
+                "clothing": "",
+                "accompaniedBy": "Unsure",
+                "directionOfTravel": "",
+                "urgency": "MEDIUM",
+                "summary": raw_text[:120]
+            }
+    except Exception as e:
+        print(f"Error in transcribe_voice_tip: {e}")
+        raise HTTPException(status_code=500, detail=f"Voice transcription failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
