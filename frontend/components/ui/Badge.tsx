@@ -1,58 +1,35 @@
-import { ReactNode } from "react";
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 
-type BadgeProps = {
-  children: ReactNode;
-  variant?: "critical" | "high-risk" | "verified" | "official" | "default";
-  icon?: boolean;
-  className?: string;
-};
-
-export default function Badge({
-  children,
-  variant = "default",
-  icon = false,
-  className = "",
-}: BadgeProps) {
-  let baseClasses =
-    "inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-wider font-semibold";
-  
-  let variantClasses = "";
-  let iconElement = null;
-
-  switch (variant) {
-    case "critical":
-      variantClasses = "bg-[#FEF2F2] border border-[#DC2626] text-[#991B1B]";
-      if (icon) {
-        iconElement = <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626] animate-pulse"></span>;
-      }
-      break;
-    case "high-risk":
-      variantClasses = "bg-[#FFFBEB] border border-[#D97706] text-[#92400E]";
-      if (icon) {
-        iconElement = <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span>;
-      }
-      break;
-    case "verified":
-      variantClasses = "bg-[#ECFDF5] border border-[#10B981] text-[#065F46]";
-      if (icon) {
-        iconElement = <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>;
-      }
-      break;
-    case "official":
-      variantClasses = "bg-[#F1F5F9] border border-[#94A3B8] text-[#334155]";
-      if (icon) {
-        iconElement = <span className="w-1.5 h-1.5 rounded-full bg-[#94A3B8]"></span>;
-      }
-      break;
-    default:
-      variantClasses = "bg-surface-container-low text-on-surface-variant border border-outline-variant/30";
-      break;
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default: "border-transparent bg-slate-900 text-white",
+        secondary: "border-transparent bg-slate-100 text-slate-900",
+        destructive: "border-transparent bg-red-100 text-red-700",
+        outline: "text-slate-700 border-slate-200",
+        success: "border-transparent bg-emerald-100 text-emerald-700",
+        warning: "border-transparent bg-amber-100 text-amber-700",
+        critical: "border-red-200 bg-red-50 text-red-700",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
   }
+)
 
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <span className={`${baseClasses} ${variantClasses} ${className}`}>
-      {iconElement}
-      {children}
-    </span>
-  );
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  )
 }
+
+export { Badge, badgeVariants }

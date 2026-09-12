@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "ChildGuard National Rescue Network",
-  description: "Rapid emergency coordination and child safety monitoring",
+  title: "ChildGuard — National Missing Child Alert Network",
+  description: "AI-powered rapid response system for missing children in India",
 };
 
 export default function RootLayout({
@@ -20,17 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${jakarta.variable} h-full antialiased`}
-    >
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-      </head>
-      <body className="min-h-screen flex flex-col bg-background font-body-md text-on-surface">
+    <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
+      <body className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased">
         <AuthProvider>
           <Header />
-          <main className="w-full pt-20 flex-grow">
+          <main className="w-full flex-grow flex flex-col">
             {children}
           </main>
         </AuthProvider>
