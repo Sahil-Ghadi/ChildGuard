@@ -202,7 +202,7 @@ export default function RegisterCase() {
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="text-xs font-mono text-slate-500">VERIFYING OFFICER CREDENTIALS...</p>
+          <p className="text-sm text-slate-500">Verifying officer credentials...</p>
         </div>
       </div>
     );
@@ -251,7 +251,7 @@ export default function RegisterCase() {
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div className="text-left">
-                <span className="text-[11px] font-mono uppercase text-slate-400">Assigned Case Identifier</span>
+                <span className="text-xs text-slate-500">Case ID</span>
                 <div className="font-mono text-base font-bold text-slate-900">{success.id}</div>
               </div>
               {success.riskScore && (
@@ -268,7 +268,7 @@ export default function RegisterCase() {
               <Link href="/dashboard" className="flex-1">
                 <Button className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs gap-1.5 shadow-md shadow-blue-500/20">
                   <Shield className="w-4 h-4" />
-                  <span>Open Tactical Dashboard</span>
+                  <span>Open Dashboard</span>
                 </Button>
               </Link>
             </div>
@@ -285,16 +285,16 @@ export default function RegisterCase() {
       <div className="space-y-2 border-b border-slate-200/80 pb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-800 text-xs font-semibold">
           <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
-          <span>Case Intake Protocol</span>
+          <span>New Case Intake</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Register Missing Child Dossier
+        <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Register Missing Child Case
         </h1>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
-          Submitting this incident initiates automated transit route prediction, optical facial embedding generation, and rapid geofence broadcast.
+        <p className="text-sm text-slate-600 max-w-2xl">
+          Enter case details and photo to initiate AI facial recognition matching, transit route tracking, and search alerts.
         </p>
-        <div className="text-xs text-slate-400 font-mono pt-1">
-          Authenticated Officer: <strong className="text-slate-700">{user.displayName || user.email}</strong>
+        <div className="text-xs text-slate-500 pt-1">
+          Authenticated Officer: <strong className="text-slate-800 font-semibold">{user.displayName || user.email}</strong>
         </div>
       </div>
 
@@ -312,9 +312,9 @@ export default function RegisterCase() {
 
             {/* Section 1: Child Identity */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
                 <User className="w-3.5 h-3.5 text-blue-600" />
-                <span>01. Subject Identity</span>
+                <span>1. Child Information</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,9 +349,9 @@ export default function RegisterCase() {
             {/* Section 2: Last Seen Details */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                  <span>02. Incident Coordinates & Timing</span>
+                  <span>2. Last Seen Details & Location</span>
                 </div>
                 <Button
                   type="button"
@@ -478,9 +478,9 @@ export default function RegisterCase() {
 
             {/* Section 3: Physical Description */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
                 <Clock className="w-3.5 h-3.5 text-blue-600" />
-                <span>03. Physical Description & Distinctive Identifiers</span>
+                <span>3. Physical Description</span>
               </div>
 
               <div className="space-y-1.5">
@@ -499,9 +499,9 @@ export default function RegisterCase() {
 
             {/* Section 4: Biometric Photo Reference */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
                 <Camera className="w-3.5 h-3.5 text-blue-600" />
-                <span>04. Reference Photo for Facial Biometrics</span>
+                <span>4. Reference Photo</span>
               </div>
 
               <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-2xl p-8 flex flex-col items-center justify-center bg-slate-50/70 hover:bg-blue-50/20 transition-all cursor-pointer relative overflow-hidden">
@@ -560,17 +560,17 @@ export default function RegisterCase() {
                 type="submit" 
                 disabled={loading} 
                 size="lg" 
-                className="h-13 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm gap-2 shadow-lg shadow-blue-500/25"
+                className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm gap-2 shadow-md shadow-blue-500/20"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing Multi-Agent Pipeline...</span>
+                    <span>Registering Case...</span>
                   </>
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4" />
-                    <span>Register Incident & Launch Search</span>
+                    <span>Register Case & Activate Search</span>
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}

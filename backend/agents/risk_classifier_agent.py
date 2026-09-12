@@ -26,7 +26,7 @@ def risk_classifier_agent(state: CaseState) -> CaseState:
             return fallback_heuristic_scoring(state)
             
         llm = ChatGoogleGenerativeAI(
-            model="gemini-3.6-flash", 
+            model="gemini-3.5-flash", 
             temperature=0, 
             max_tokens=500
         )

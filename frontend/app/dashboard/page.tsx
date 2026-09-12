@@ -203,7 +203,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="text-xs font-mono text-slate-500">SYNCING TACTICAL DISPATCH FEED...</p>
+          <p className="text-sm text-slate-500">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -223,20 +223,20 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
-      {/* Sleek Top Console Bar */}
+      {/* Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Tactical Dispatch Console
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              Command Dashboard
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Telemetry
+              Live
             </span>
           </div>
-          <p className="text-xs text-slate-500">
-            Real-time geospatial tracking, autonomous AI transit corridor prediction, and community corroboration.
+          <p className="text-sm text-slate-500">
+            Track cases, review sightings, and coordinate field teams.
           </p>
         </div>
 
@@ -382,25 +382,25 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Tactical Field Intercept & Communications Action Bar */}
+      {/* Officer Communications Bar */}
       {activeCase && (
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:px-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-              <Radio className="w-5 h-5 animate-pulse" />
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Radio className="w-4 h-4" />
             </div>
-            <div className="space-y-0.5">
+            <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                  RADIO 462.575 MHz ACTIVE
+                <span className="text-xs font-semibold text-blue-700">
+                  Communications Active
                 </span>
-                <span className="text-[11px] font-mono text-slate-500">Patrol Units: PCR-04, RPF-02, HWP-09</span>
+                <span className="text-xs text-slate-500">3 patrol units assigned</span>
               </div>
-              <h3 className="text-sm font-bold text-slate-900 font-display">
-                Field Intercept Comms & Twilio Cellular Gateway
+              <h3 className="text-sm font-semibold text-slate-900">
+                Officer Communications
               </h3>
               <p className="text-xs text-slate-500">
-                Outbound voice & live SMS dispatch to patrol units. Auto-resolves case upon officer reply.
+                Send alerts to patrol officers via SMS & WhatsApp.
               </p>
             </div>
           </div>
@@ -408,10 +408,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 shrink-0">
             <Button
               onClick={() => setShowCommsModal(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs h-9 gap-1.5 rounded-lg shadow-xs"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs h-9 gap-1.5 rounded-lg"
             >
               <PhoneCall className="w-3.5 h-3.5" />
-              <span>Ground Intercept Console</span>
+              <span>Send Alert</span>
             </Button>
             <Link href="/verification-desk">
               <Button
@@ -436,9 +436,9 @@ export default function Dashboard() {
           {activeCase && (
             <Card className="border-slate-200 shadow-sm bg-white overflow-hidden">
               <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/60">
-                <CardTitle className="font-display text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Dossier Intelligence</span>
+                <CardTitle className="font-display text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Case Details</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3.5 text-xs">
@@ -491,9 +491,9 @@ export default function Dashboard() {
           <Card className="border-slate-200 shadow-sm bg-white overflow-hidden">
             <CardHeader className="p-4 pb-3 border-b border-slate-100">
               <div className="flex items-center justify-between">
-                <CardTitle className="font-display text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Case Registry</span>
+                <CardTitle className="font-display text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-slate-500" />
+                  <span>All Cases</span>
                 </CardTitle>
                 <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                   {cases.length}
@@ -583,12 +583,12 @@ export default function Dashboard() {
           <Card className="border-slate-200 shadow-sm overflow-hidden bg-white">
             <CardHeader className="p-4 sm:px-6 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-display text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-blue-600" />
-                  <span>Geospatial Intercept Perimeter & Telemetry</span>
+                <CardTitle className="font-display text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-slate-500" />
+                  <span>Live Map</span>
                 </CardTitle>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {activeCase ? `Incident coordinates & reported sighting vectors for ${activeCase.childName}` : "Select a case from the registry"}
+                  {activeCase ? `Tracking ${activeCase.childName} — incident location and reported sightings` : "Select a case to view on map"}
                 </p>
               </div>
 
@@ -661,9 +661,9 @@ export default function Dashboard() {
             {/* Community Sightings Feed */}
             <Card className="border-slate-200 shadow-sm bg-white">
               <CardHeader className="p-4 border-b border-slate-100 flex flex-row items-center justify-between">
-                <CardTitle className="font-display text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Eye className="w-4 h-4 text-emerald-600" />
-                  <span>Citizen Sighting Submissions</span>
+                <CardTitle className="font-display text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Eye className="w-4 h-4 text-slate-500" />
+                  <span>Sightings</span>
                 </CardTitle>
                 <Badge variant="secondary" className="font-mono text-xs">
                   {sightings.length}
@@ -706,9 +706,9 @@ export default function Dashboard() {
             {/* Autonomous Multi-Agent Audit Trail */}
             <Card className="border-slate-200 shadow-sm bg-white">
               <CardHeader className="p-4 border-b border-slate-100 flex flex-row items-center justify-between">
-                <CardTitle className="font-display text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Terminal className="w-4 h-4 text-blue-600" />
-                  <span>Autonomous Agent Audit Trail</span>
+                <CardTitle className="font-display text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <Terminal className="w-4 h-4 text-slate-500" />
+                  <span>Activity Log</span>
                 </CardTitle>
                 <Badge variant="secondary" className="font-mono text-xs">
                   {activeCase?.auditLog?.length || 0} Events

@@ -57,7 +57,7 @@ export default function PublicAlert() {
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-          <p className="text-xs font-mono text-slate-500">LOADING ACTIVE CHILD ALERTS...</p>
+          <p className="text-sm text-slate-500">Loading active alerts...</p>
         </div>
       </div>
     );
@@ -114,12 +114,12 @@ export default function PublicAlert() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-rose-200">
-                CRITICAL BROADCAST
+                EMERGENCY ALERT
               </span>
               <span className="w-2 h-2 rounded-full bg-white animate-ping" />
             </div>
             <h2 className="font-display text-lg sm:text-xl font-extrabold tracking-tight">
-              Active Missing Child Alert • Public Mobilization Protocol
+              Active Missing Child Alert
             </h2>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function PublicAlert() {
               </div>
 
               <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs">
-                <div className="text-[10px] font-mono text-slate-500 font-bold uppercase">Case Dossier</div>
+                <div className="text-[10px] text-slate-500 font-bold uppercase">Case ID</div>
                 <div className="text-xs font-bold font-mono text-slate-900">{activeCase.caseId}</div>
               </div>
             </div>
@@ -228,9 +228,9 @@ export default function PublicAlert() {
               {/* Action Buttons */}
               <div className="space-y-3 pt-2 border-t border-slate-100">
                 <Link href={`/report-a-sighting?caseId=${activeCase.caseId}`} className="block">
-                  <Button size="lg" className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base gap-2 shadow-md shadow-blue-500/20 transition-all">
+                  <Button size="lg" className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base gap-2 shadow-md shadow-blue-500/20 transition-all">
                     <Camera className="w-5 h-5" />
-                    I Have Seen This Child (Submit Photo Tip)
+                    <span>I Have Seen This Child (Submit Photo Tip)</span>
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
@@ -242,7 +242,7 @@ export default function PublicAlert() {
                     className="flex-1 h-11 rounded-xl border-slate-300 font-semibold text-xs gap-2 text-slate-700 hover:bg-slate-50"
                   >
                     <Share2 className="w-4 h-4 text-slate-500" />
-                    <span>{copied ? "Link Copied to Clipboard!" : "Share Alert Bulletin"}</span>
+                    <span>{copied ? "Link Copied!" : "Share Alert"}</span>
                   </Button>
 
                   <Button 
@@ -272,7 +272,7 @@ export default function PublicAlert() {
             <CardHeader className="p-4 sm:px-6 border-b border-slate-100 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="font-display text-base font-bold text-slate-900">
-                  Incident & Sighting Map
+                  Location & Sighting Map
                 </CardTitle>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {sightings.length} community tip(s) geolocated
@@ -302,7 +302,7 @@ export default function PublicAlert() {
           <Card className="border-slate-200 shadow-sm h-full flex flex-col justify-between">
             <CardHeader className="p-4 sm:px-6 border-b border-slate-100 flex flex-row items-center justify-between">
               <CardTitle className="font-display text-base font-bold text-slate-900">
-                Community Sighting Feed
+                Community Sightings
               </CardTitle>
               <Badge variant="secondary" className="font-mono text-xs">
                 {sightings.length} Logged

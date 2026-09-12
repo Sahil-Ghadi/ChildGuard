@@ -14,7 +14,7 @@ class SightingVerification(BaseModel):
 
 def sighting_verifier_agent(state: SightingState) -> SightingState:
     """
-    Verifies a community sighting using real multimodal face comparison with gemini-3.6-flash.
+    Verifies a community sighting using real multimodal face comparison with gemini-3.5-flash.
     """
     case = state.case
     sighting = state.sighting
@@ -52,12 +52,12 @@ def sighting_verifier_agent(state: SightingState) -> SightingState:
         state.sighting.confidenceLabel = state.confidenceLabel
         return state
 
-    # 4. Multimodal comparison with gemini-3.6-flash
+    # 4. Multimodal comparison with gemini-3.5-flash
     api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if api_key:
         try:
             llm = ChatGoogleGenerativeAI(
-                model="gemini-3.6-flash"
+                model="gemini-3.5-flash"
             )
             structured_llm = llm.with_structured_output(SightingVerification)
             

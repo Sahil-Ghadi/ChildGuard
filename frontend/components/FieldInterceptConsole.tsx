@@ -118,7 +118,13 @@ export default function FieldInterceptConsole({
     if (!officerPhone.trim()) return;
     setSendingSms(true);
     try {
-      const res = await sendTwilioDispatchApi(caseData.caseId, officerPhone.trim(), selectedChannel);
+      const res = await sendTwilioDispatchApi(
+        caseData.caseId, 
+        officerPhone.trim(), 
+        selectedChannel,
+        targetLocation,
+        sightingId
+      );
       const details = res.details || res;
       setSmsResult(details);
       if (details.whatsappUrl) {
@@ -277,10 +283,10 @@ export default function FieldInterceptConsole({
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Tactical Officer Comms (SMS + WhatsApp)
+                Officer Dispatch & Alerts (SMS / WhatsApp)
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Official Twilio Cellular Line: <strong className="font-mono text-slate-800 font-semibold">+1 (430) 237-3377</strong>
+                Official Twilio Dispatch Line: <strong className="font-mono text-slate-800 font-semibold">+1 (430) 237-3377</strong>
               </p>
             </div>
           </div>
@@ -341,29 +347,6 @@ export default function FieldInterceptConsole({
           </div>
         </div>
 
-        {/* WhatsApp Sandbox Notice - Compact & Clean */}
-        {(selectedChannel === "whatsapp" || selectedChannel === "both") && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                <MessageCircle className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-xs">
-                Send <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300 text-emerald-800">join tube-pain</code> to <strong>+1 415 523 8886</strong> to activate Twilio Sandbox delivery.
-              </span>
-            </div>
-            <a
-              href="https://wa.me/14155238886?text=join%20tube-pain"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shrink-0 transition-colors shadow-2xs"
-            >
-              <span>1-Tap WhatsApp Opt-in</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        )}
-
         {/* Phone Input & Balanced Action Buttons */}
         <div className="space-y-3 pt-1">
           <div className="space-y-1.5">
@@ -415,7 +398,7 @@ export default function FieldInterceptConsole({
 
             <a
               href={whatsappDirectUrl || `https://wa.me/${officerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                `🚨 *CHILDGUARD POLICE DISPATCH* 🚨\nCase: ${caseData.caseId}\nChild: ${caseData.childName} (Age ${caseData.age})\nLocation: ${targetLocation}\n\nAction: Reply *FOUND* to close case or *NOT FOUND* to widen perimeter.`
+                `🚨 *CHILDGUARD POLICE DISPATCH* 🚨\n\n📋 *Case:* ${caseData.caseId}\n👤 *Child:* ${caseData.childName} (Age ${caseData.age})\n📍 *Dispatched Location:* ${targetLocation}\n🗺️ *Live Google Maps:* https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(targetLocation)}\n\n⚡ *Action:* Reply *FOUND* to close case or *NOT FOUND* to widen perimeter.`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -462,7 +445,7 @@ export default function FieldInterceptConsole({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
               <Signal className="w-4 h-4 text-blue-600" />
-              Inbound Field Officer Telemetry Protocol
+              Officer Reply Protocol
             </span>
             <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300">
               ● Automated Webhook Active
@@ -503,7 +486,7 @@ export default function FieldInterceptConsole({
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                Tactical Voice & Cruiser MDT Comms
+                Radio Advisory Broadcast
               </h3>
               <p className="text-[11px] text-slate-500">
                 Channel: <span className="font-mono font-medium text-slate-700">SEC-INTERCEPT-ALPHA (462.575 MHz)</span>
@@ -574,7 +557,7 @@ export default function FieldInterceptConsole({
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-500" />
             <span className="text-xs font-semibold text-slate-700">
-              Manual Intercept Filing (Command Console Fallback)
+              Manual Case Resolution (Fallback)
             </span>
           </div>
           <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showManualForm ? "rotate-180" : ""}`} />

@@ -91,41 +91,19 @@ export default function LoginPage() {
         
         {/* Portal Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-800 text-xs font-semibold shadow-xs">
-            <Lock className="w-3.5 h-3.5 text-blue-600" />
-            <span>Authorized Officer Gateway</span>
-          </div>
-          <h1 className="font-display text-3xl font-extrabold text-slate-900 tracking-tight">
-            Officer Terminal Access
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            Officer Sign In
           </h1>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            ChildGuard National Missing Child Alert Network & Tactical Dispatch Command
+          <p className="text-sm text-slate-500 max-w-sm mx-auto">
+            Access the ChildGuard command dashboard
           </p>
         </div>
 
         {/* Main Authentication Card */}
-        <Card className="shadow-xl border-slate-200/80 bg-white/95 backdrop-blur-sm overflow-hidden">
-          {/* Security stripe */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500" />
+        <Card className="shadow-lg border-slate-200 bg-white overflow-hidden">
+          <div className="h-1 w-full bg-blue-600" />
           
-          <CardContent className="p-6 sm:p-8 space-y-6">
-            
-            {/* Identity Emblem */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shrink-0 shadow-sm">
-                  <Shield className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Security Clearance</div>
-                  <div className="text-sm font-bold text-slate-900">National Police & Welfare Grid</div>
-                </div>
-              </div>
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Level-2 Certified</span>
-              </div>
-            </div>
+          <CardContent className="p-6 sm:p-8 space-y-5">
 
             {/* Auth Mode Toggle Switch */}
             <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold">
@@ -276,17 +254,8 @@ export default function LoginPage() {
             )}
 
             {/* Compliance Footer */}
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-100 font-mono">
-              <span className="flex items-center gap-1 text-[11px]">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                TLS 256-Bit Encrypted
-              </span>
-              <span className="text-[11px]">CCTNS Compliant</span>
-            </div>
-
-            {/* Official Terms Notice */}
-            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] text-slate-500 leading-relaxed text-center">
-              Unauthorized access is strictly prohibited and monitored under the Information Technology Act 2000.
+            <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-100">
+              Encrypted & CCTNS Compliant
             </div>
 
           </CardContent>

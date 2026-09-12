@@ -27,30 +27,40 @@ def send_dispatch_notification(
     age: int,
     location_address: str,
     photo_url: str = "",
-    channel: str = "both"  # "sms", "whatsapp", or "both"
+    channel: str = "both",  # "sms", "whatsapp", or "both"
+    coords: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Sends dual-channel dispatch alerts (Carrier SMS + WhatsApp) to the patrol officer.
-    Provides direct reply instructions for real-time case closure.
+    Provides direct reply instructions and live Google Maps navigation link.
     """
     cfg = get_twilio_config()
     target_phone = (to_phone or cfg["default_officer"]).strip()
     
+    # Generate Google Maps navigation link for officer routing
+    maps_link = ""
+    if coords and coords.get("lat") and coords.get("lng"):
+        maps_link = f"https://www.google.com/maps?q={coords['lat']},{coords['lng']}"
+    elif location_address:
+        maps_link = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(location_address)}"
+
     # Pure ASCII template for high-reliability carrier SMS
     sms_body = (
         f"[CHILDGUARD POLICE DISPATCH]\n"
         f"Case: {case_id}\n"
         f"Subject: {child_name} (Age {age})\n"
         f"Location: {location_address}\n"
+        + (f"Directions: {maps_link}\n" if maps_link else "") +
         f"Reply FOUND to close case or NOT FOUND to expand perimeter."
     )
 
-    # Formatted WhatsApp message with bolding and action cues
+    # Formatted WhatsApp message with bolding, location, maps pin, and action cues
     wa_body = (
         f"🚨 *CHILDGUARD TACTICAL FIELD DISPATCH* 🚨\n\n"
         f"📋 *Case ID:* {case_id}\n"
         f"👤 *Child Name:* {child_name} (Age {age})\n"
-        f"📍 *Target Location:* {location_address}\n"
+        f"📍 *Dispatched Location:* {location_address}\n"
+        + (f"🗺️ *Live Google Maps:* {maps_link}\n" if maps_link else "") +
         f"📸 *Dossier Photo:* {photo_url if photo_url else 'Available on Dispatch Console'}\n\n"
         f"⚡ *REPLY DIRECTLY VIA WHATSAPP / SMS:*\n"
         f"• Send *FOUND* to confirm recovery & close case.\n"

@@ -43,6 +43,17 @@ export type CaseData = {
     similarCasesCount: number;
     basedOn: string[];
   };
+  traffickingMatches?: Array<{
+    corridorId: string;
+    corridorName: string;
+    highwayTransit?: string;
+    sourceDestination: string;
+    riskTier: string;
+    nodalAHTU: string;
+    surveillanceNodes: string[];
+    statutoryBasis: string;
+    tacticalRecommendation: string;
+  }>;
   alertDistributed?: boolean;
   auditLog?: Array<{
     agentName: string;
@@ -89,10 +100,17 @@ export async function resolveInterceptApi(caseId: string, payload: InterceptReso
   });
 }
 
-export async function sendTwilioDispatchApi(caseId: string, officerPhone?: string, channel: string = "both") {
+export async function sendTwilioDispatchApi(
+  caseId: string, 
+  officerPhone?: string, 
+  channel: string = "both",
+  targetLocation?: string,
+  sightingId?: string,
+  coords?: { lat: number; lng: number }
+) {
   return apiFetch(`/api/twilio/dispatch`, {
     method: "POST",
-    body: JSON.stringify({ caseId, officerPhone, channel }),
+    body: JSON.stringify({ caseId, officerPhone, channel, targetLocation, sightingId, coords }),
   });
 }
 

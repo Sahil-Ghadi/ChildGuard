@@ -89,6 +89,7 @@ def create_case(case_data: CaseCreate):
     doc_data["patternPredictions"] = final_state.get("pattern_predictions")
     doc_data["alertDistributed"] = final_state.get("alert_distributed")
     doc_data["auditLog"] = final_state.get("audit_log")
+    doc_data["traffickingMatches"] = final_state.get("trafficking_matches", [])
     
     case_id = case_db.caseId
     
@@ -400,6 +401,9 @@ class TwilioDispatchReq(BaseModel):
     caseId: str
     officerPhone: Optional[str] = "+918767322544"
     channel: Optional[str] = "both"
+    targetLocation: Optional[str] = None
+    sightingId: Optional[str] = None
+    coords: Optional[dict] = None
 
 @app.post("/api/twilio/dispatch")
 def trigger_twilio_dispatch(req: TwilioDispatchReq):
@@ -413,15 +417,43 @@ def trigger_twilio_dispatch(req: TwilioDispatchReq):
         
     if not case_dict:
         raise HTTPException(status_code=404, detail="Case not found")
+
+    # Resolve accurate dispatched location & coordinates
+    target_loc = req.targetLocation
+    coords = req.coords
+
+    # If sightingId provided, attempt to fetch exact sighting address and lat/lng
+    if req.sightingId:
+        try:
+            if db:
+                s_doc = db.collection("missingChildren").document(req.caseId).collection("sightings").document(req.sightingId).get()
+                if s_doc.exists:
+                    s_data = s_doc.to_dict()
+                    target_loc = target_loc or s_data.get("location", {}).get("address")
+                    if not coords and s_data.get("location"):
+                        coords = {"lat": s_data["location"].get("lat"), "lng": s_data["location"].get("lng")}
+            elif req.caseId in mock_db["sightings"] and req.sightingId in mock_db["sightings"][req.caseId]:
+                s_data = mock_db["sightings"][req.caseId][req.sightingId]
+                target_loc = target_loc or s_data.get("location", {}).get("address")
+                if not coords and s_data.get("location"):
+                    coords = {"lat": s_data["location"].get("lat"), "lng": s_data["location"].get("lng")}
+        except Exception as e:
+            print(f"Sighting lookup note: {e}")
+
+    if not target_loc:
+        target_loc = case_dict.get("lastSeenLocation", {}).get("address", "Reported location")
+        if not coords and case_dict.get("lastSeenLocation"):
+            coords = {"lat": case_dict["lastSeenLocation"].get("lat"), "lng": case_dict["lastSeenLocation"].get("lng")}
         
     res = send_dispatch_notification(
         to_phone=req.officerPhone,
         case_id=req.caseId,
         child_name=case_dict.get("childName", "Unknown"),
         age=case_dict.get("age", 0),
-        location_address=case_dict.get("lastSeenLocation", {}).get("address", "Reported location"),
+        location_address=target_loc,
         photo_url=case_dict.get("photoUrl", ""),
-        channel=req.channel or "both"
+        channel=req.channel or "both",
+        coords=coords
     )
     
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
