@@ -675,35 +675,87 @@ export default function VerificationDesk() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-4 text-xs font-mono text-slate-600">
+              <div className="flex items-center gap-3.5 text-xs font-mono text-slate-600 flex-wrap">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-600" /> Original Incident Pin
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Eyewitness Sighting
                 </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-4 h-0.5 border-t-2 border-dashed border-blue-600" /> Intercept Vector
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-400/25 border border-blue-500" /> Probable Radius
+                </span>
               </div>
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="relative h-80 w-full bg-slate-100">
-                <MapWrapper
-                  center={[activeSighting.location.lat, activeSighting.location.lng]}
-                  zoom={13}
-                  markers={[
-                    { 
-                      id: "sighting-pin", 
-                      position: [activeSighting.location.lat, activeSighting.location.lng], 
-                      popup: `Reported Sighting Location: ${activeSighting.location.address} (${activeSighting.credibilityScore}% Match)` 
-                    },
-                    { 
-                      id: "lastseen-pin", 
-                      position: [activeCase.lastSeenLocation.lat, activeCase.lastSeenLocation.lng], 
-                      popup: `Last Known Location: ${activeCase.childName} (${activeCase.lastSeenLocation.address})` 
-                    }
-                  ]}
-                  className="w-full h-full"
-                />
+              <div className="relative h-88 w-full bg-slate-100">
+                {(() => {
+                  const startLat = activeCase.lastSeenLocation.lat;
+                  const startLng = activeCase.lastSeenLocation.lng;
+                  const endLat = activeSighting.location.lat;
+                  const endLng = activeSighting.location.lng;
+
+                  const R = 6371;
+                  const dLat = (endLat - startLat) * (Math.PI / 180);
+                  const dLon = (endLng - startLng) * (Math.PI / 180);
+                  const a = 
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(startLat * (Math.PI / 180)) * Math.cos(endLat * (Math.PI / 180)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                  const distKm = Math.max(Math.round((R * c) * 10) / 10, 0.1);
+                  const probableRadiusMeters = Math.max(Math.round(distKm * 1000 * 1.25), 1500);
+
+                  return (
+                    <MapWrapper
+                      center={[(startLat + endLat) / 2, (startLng + endLng) / 2]}
+                      zoom={13}
+                      markers={[
+                        { 
+                          id: "sighting-pin", 
+                          position: [endLat, endLng], 
+                          popup: `Reported Sighting: ${activeSighting.location.address} (${activeSighting.credibilityScore}% Match, ~${distKm} km from origin)` 
+                        },
+                        { 
+                          id: "lastseen-pin", 
+                          position: [startLat, startLng], 
+                          popup: `Original Incident Location: ${activeCase.childName} (${activeCase.lastSeenLocation.address})` 
+                        }
+                      ]}
+                      paths={[
+                        {
+                          id: "trajectory-vector",
+                          positions: [
+                            [startLat, startLng],
+                            [endLat, endLng]
+                          ],
+                          color: "#2563eb",
+                          dashArray: "6, 8",
+                          weight: 3.5,
+                          opacity: 0.9
+                        }
+                      ]}
+                      circles={[
+                        {
+                          id: "probable-covered-radius",
+                          center: [startLat, startLng],
+                          radius: probableRadiusMeters,
+                          color: "#2563eb",
+                          fillColor: "#3b82f6",
+                          fillOpacity: 0.12,
+                          weight: 1.5,
+                          dashArray: "5, 5",
+                          popup: `Probable Travel Radius: ~${(probableRadiusMeters / 1000).toFixed(1)} km estimated range from last seen origin`
+                        }
+                      ]}
+                      className="w-full h-full"
+                    />
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>

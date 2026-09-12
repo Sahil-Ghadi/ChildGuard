@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMapEvents, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -16,12 +16,31 @@ const icon = L.icon({
   shadowSize: [41, 41]
 });
 
-type MapProps = {
+export type MapProps = {
   center: [number, number];
   zoom?: number;
   markers?: Array<{
     id: string;
     position: [number, number];
+    popup?: string;
+  }>;
+  paths?: Array<{
+    id?: string;
+    positions: [number, number][];
+    color?: string;
+    dashArray?: string;
+    weight?: number;
+    opacity?: number;
+  }>;
+  circles?: Array<{
+    id?: string;
+    center: [number, number];
+    radius: number;
+    color?: string;
+    fillColor?: string;
+    fillOpacity?: number;
+    weight?: number;
+    dashArray?: string;
     popup?: string;
   }>;
   className?: string;
@@ -47,7 +66,15 @@ function MapClickHandler({ onClick }: { onClick?: (lat: number, lng: number) => 
   return null;
 }
 
-export default function Map({ center, zoom = 13, markers = [], className = "w-full h-full", onMapClick }: MapProps) {
+export default function Map({ 
+  center, 
+  zoom = 13, 
+  markers = [], 
+  paths = [],
+  circles = [],
+  className = "w-full h-full", 
+  onMapClick 
+}: MapProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -65,6 +92,40 @@ export default function Map({ center, zoom = 13, markers = [], className = "w-fu
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {onMapClick && <MapClickHandler onClick={onMapClick} />}
+
+        {/* Probable Range / Travel Radius Circles */}
+        {circles.map((c, i) => (
+          <Circle
+            key={c.id || `circle-${i}`}
+            center={c.center}
+            radius={c.radius}
+            pathOptions={{
+              color: c.color || "#2563eb",
+              fillColor: c.fillColor || "#3b82f6",
+              fillOpacity: c.fillOpacity ?? 0.15,
+              weight: c.weight ?? 1.5,
+              dashArray: c.dashArray || "5, 5"
+            }}
+          >
+            {c.popup && <Popup>{c.popup}</Popup>}
+          </Circle>
+        ))}
+
+        {/* Tactical Trajectory Paths between Original and Reported Locations */}
+        {paths.map((p, i) => (
+          <Polyline
+            key={p.id || `path-${i}`}
+            positions={p.positions}
+            pathOptions={{
+              color: p.color || "#2563eb",
+              dashArray: p.dashArray || "6, 8",
+              weight: p.weight ?? 3.5,
+              opacity: p.opacity ?? 0.85
+            }}
+          />
+        ))}
+
+        {/* Point Markers */}
         {markers.map((marker) => (
           <Marker key={marker.id} position={marker.position} icon={icon}>
             {marker.popup && <Popup>{marker.popup}</Popup>}

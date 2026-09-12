@@ -116,18 +116,85 @@ export default function Dashboard() {
   );
 
   const verifiedSightings = sightings.filter((s) => s.confidenceLabel === "HIGH");
+
+  // Haversine calculation for geospatial distance
+  const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.max(Math.round((R * c) * 10) / 10, 0.1);
+  };
+
   const mapMarkers = activeCase
     ? [
         {
           id: "last-seen",
           position: [activeCase.lastSeenLocation.lat, activeCase.lastSeenLocation.lng] as [number, number],
-          popup: `Incident Pin: ${activeCase.childName} (${activeCase.lastSeenLocation.address})`,
+          popup: `Original Incident Location: ${activeCase.childName} (${activeCase.lastSeenLocation.address})`,
         },
-        ...sightings.map((s) => ({
-          id: s.sightingId,
-          position: [s.location.lat, s.location.lng] as [number, number],
-          popup: `Sighting: ${s.location.address} (${s.credibilityScore}% Match)`,
-        })),
+        ...sightings.map((s) => {
+          const dist = getDistanceKm(
+            activeCase.lastSeenLocation.lat,
+            activeCase.lastSeenLocation.lng,
+            s.location.lat,
+            s.location.lng
+          );
+          return {
+            id: s.sightingId,
+            position: [s.location.lat, s.location.lng] as [number, number],
+            popup: `Reported Sighting: ${s.location.address} (${s.credibilityScore}% Match, ~${dist} km from origin)`,
+          };
+        }),
+      ]
+    : [];
+
+  // Trajectory vectors between original incident and reported sightings
+  const mapPaths = (activeCase && sightings.length > 0)
+    ? sightings.map((s, idx) => ({
+        id: `trajectory-${s.sightingId || idx}`,
+        positions: [
+          [activeCase.lastSeenLocation.lat, activeCase.lastSeenLocation.lng] as [number, number],
+          [s.location.lat, s.location.lng] as [number, number],
+        ],
+        color: s.confidenceLabel === "HIGH" ? "#2563eb" : "#64748b",
+        dashArray: "6, 8",
+        weight: 3.5,
+        opacity: 0.9,
+      }))
+    : [];
+
+  // Probable covered distance radius circle around origin
+  const maxSightingDistanceMeters = (activeCase && sightings.length > 0)
+    ? Math.max(
+        ...sightings.map((s) =>
+          getDistanceKm(
+            activeCase.lastSeenLocation.lat,
+            activeCase.lastSeenLocation.lng,
+            s.location.lat,
+            s.location.lng
+          ) * 1000
+        )
+      ) * 1.25
+    : 3000;
+
+  const mapCircles = activeCase
+    ? [
+        {
+          id: "probable-covered-radius",
+          center: [activeCase.lastSeenLocation.lat, activeCase.lastSeenLocation.lng] as [number, number],
+          radius: Math.max(Math.round(maxSightingDistanceMeters), 2000),
+          color: "#2563eb",
+          fillColor: "#3b82f6",
+          fillOpacity: 0.12,
+          weight: 1.5,
+          dashArray: "5, 5",
+          popup: `Probable Travel Radius: ~${(Math.max(Math.round(maxSightingDistanceMeters), 2000) / 1000).toFixed(1)} km estimated range from last seen origin`,
+        },
       ]
     : [];
 
@@ -525,14 +592,22 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-slate-500 font-mono">
+              <div className="flex items-center gap-3.5 text-xs text-slate-500 font-mono flex-wrap">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-600" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
                   Incident Pin
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   Sightings
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-4 h-0.5 border-t-2 border-dashed border-blue-600" />
+                  Trajectory Vector
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-400/25 border border-blue-500" />
+                  Probable Range
                 </span>
               </div>
             </CardHeader>
@@ -547,6 +622,8 @@ export default function Dashboard() {
                 }
                 zoom={13}
                 markers={mapMarkers}
+                paths={mapPaths}
+                circles={mapCircles}
               />
 
               {/* Floating Escape Corridor HUD */}

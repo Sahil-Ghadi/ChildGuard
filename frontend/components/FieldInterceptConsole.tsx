@@ -269,164 +269,185 @@ export default function FieldInterceptConsole({
       )}
 
       {/* CARD 1: LIVE TWILIO DISPATCH (SMS + WHATSAPP) */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/80 shadow-2xs">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Tactical Officer Comms (SMS + WhatsApp)
               </h3>
-              <p className="text-[11px] text-slate-500">
-                Official Twilio Line: <strong className="font-mono text-slate-700">+1 (430) 237-3377</strong>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Official Twilio Cellular Line: <strong className="font-mono text-slate-800 font-semibold">+1 (430) 237-3377</strong>
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 py-1 px-2.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               SMS ACTIVE
             </Badge>
-            <Badge variant="outline" className="text-[10px] font-mono bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+            <Badge variant="outline" className="text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 py-1 px-2.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               WHATSAPP READY
             </Badge>
           </div>
         </div>
 
-        {/* Channel Selector Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-medium w-fit">
-          <button
-            type="button"
-            onClick={() => setSelectedChannel("both")}
-            className={`px-3 py-1 rounded-md transition-all ${
-              selectedChannel === "both"
-                ? "bg-white text-slate-900 font-bold shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            SMS + WhatsApp (Dual Alert)
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedChannel("sms")}
-            className={`px-3 py-1 rounded-md transition-all ${
-              selectedChannel === "sms"
-                ? "bg-white text-slate-900 font-bold shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            SMS Only
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedChannel("whatsapp")}
-            className={`px-3 py-1 rounded-md transition-all ${
-              selectedChannel === "whatsapp"
-                ? "bg-white text-emerald-800 font-bold shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            WhatsApp Only
-          </button>
+        {/* Channel Selector - Executive Segmented Pill */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+            Select Transmission Channel
+          </label>
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/70">
+            <button
+              type="button"
+              onClick={() => setSelectedChannel("both")}
+              className={`py-2 px-2 sm:px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                selectedChannel === "both"
+                  ? "bg-white text-blue-700 font-bold shadow-xs border border-slate-200/60"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="truncate">SMS + WhatsApp (Dual)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedChannel("sms")}
+              className={`py-2 px-2 sm:px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                selectedChannel === "sms"
+                  ? "bg-white text-slate-900 font-bold shadow-xs border border-slate-200/60"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span className="truncate">SMS Only</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedChannel("whatsapp")}
+              className={`py-2 px-2 sm:px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                selectedChannel === "whatsapp"
+                  ? "bg-white text-emerald-700 font-bold shadow-xs border border-slate-200/60"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="truncate">WhatsApp Only</span>
+            </button>
+          </div>
         </div>
 
-        {/* WhatsApp Sandbox Activation Notice */}
+        {/* WhatsApp Sandbox Notice - Compact & Clean */}
         {(selectedChannel === "whatsapp" || selectedChannel === "both") && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 animate-in fade-in">
-            <div className="flex items-start sm:items-center gap-1.5">
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
-              <span>
-                <strong>Twilio WhatsApp Bot:</strong> Send <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300 text-emerald-800">join tube-pain</code> to <strong>+1 415 523 8886</strong> to activate sandbox delivery (Twilio requires renewal every 72h).
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <MessageCircle className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs">
+                Send <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300 text-emerald-800">join tube-pain</code> to <strong>+1 415 523 8886</strong> to activate Twilio Sandbox delivery.
               </span>
             </div>
             <a
               href="https://wa.me/14155238886?text=join%20tube-pain"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[10px] shrink-0 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shrink-0 transition-colors shadow-2xs"
             >
               <span>1-Tap WhatsApp Opt-in</span>
-              <ExternalLink className="w-2.5 h-2.5" />
+              <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         )}
 
-        {/* Dispatch Input and Action Buttons */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-            <span>Patrol Officer Mobile Phone</span>
-            <span className="text-[11px] text-slate-500">Recipient Mobile Device</span>
-          </label>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative w-full sm:w-64">
-              <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        {/* Phone Input & Balanced Action Buttons */}
+        <div className="space-y-3 pt-1">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span>Patrol Officer Mobile Phone</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              <span className="text-[11px] text-slate-500 font-mono">
+                International Format (+country code)
+              </span>
+            </div>
+            <div className="relative w-full">
+              <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
                 value={officerPhone}
                 onChange={(e) => setOfficerPhone(e.target.value)}
                 placeholder="+918767322544"
-                className="pl-9 text-xs font-mono font-semibold text-slate-800 h-9 bg-slate-50/70 border-slate-200 focus:bg-white focus:ring-1 focus:ring-blue-500"
+                className="pl-10 h-11 text-sm font-mono font-semibold text-slate-900 w-full bg-slate-50/80 border-slate-300 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl"
               />
             </div>
+          </div>
 
+          {/* Action Buttons Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <Button
               onClick={handleSendTwilioSms}
               disabled={sendingSms || !officerPhone.trim() || caseData.status === "found"}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold h-9 px-4 rounded-lg flex items-center justify-center gap-1.5 shrink-0 shadow-2xs"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold h-11 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50"
             >
               {sendingSms ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Dispatching Alert...</span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Dispatching Telemetry...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" />
+                  <Send className="w-4 h-4" />
                   <span>
-                    {selectedChannel === "both" ? "Dispatch SMS + WhatsApp" : selectedChannel === "whatsapp" ? "Dispatch WhatsApp Alert" : "Dispatch Carrier SMS"}
+                    {selectedChannel === "both"
+                      ? "Dispatch SMS + WhatsApp"
+                      : selectedChannel === "whatsapp"
+                      ? "Dispatch WhatsApp Alert"
+                      : "Dispatch Carrier SMS"}
                   </span>
                 </>
               )}
             </Button>
 
-            {/* Direct WhatsApp Instant Action */}
             <a
               href={whatsappDirectUrl || `https://wa.me/${officerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
                 `🚨 *CHILDGUARD POLICE DISPATCH* 🚨\nCase: ${caseData.caseId}\nChild: ${caseData.childName} (Age ${caseData.age})\nLocation: ${targetLocation}\n\nAction: Reply *FOUND* to close case or *NOT FOUND* to widen perimeter.`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-3 h-9 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors shrink-0"
+              className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition-all"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
+              <MessageCircle className="w-4 h-4" />
               <span>Direct WhatsApp Chat</span>
-              <ExternalLink className="w-3 h-3 opacity-80" />
+              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </a>
           </div>
         </div>
 
         {/* Delivery Feedback */}
         {smsResult && (
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5 animate-in fade-in">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2 animate-in fade-in">
             <div className="flex items-center justify-between font-semibold">
-              <span className="text-emerald-700 flex items-center gap-1.5 text-[11px]">
-                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Dispatch Broadcast Transmitted
+              <span className="text-emerald-700 flex items-center gap-1.5 text-xs">
+                <CheckCheck className="w-4 h-4 text-emerald-600" />
+                Dispatch Broadcast Successfully Transmitted
               </span>
               <span className="text-[10px] font-mono text-slate-400">
                 SID: {smsResult.sid?.slice(0, 16) || "Active"}
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
-              <div className="p-2 rounded bg-white border border-slate-200 flex items-center justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-0.5">
+              <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                 <span className="text-slate-600">Carrier SMS:</span>
                 <span className="font-semibold text-emerald-700 font-mono">
                   {smsResult.sms?.sent ? "✓ Dispatched" : smsResult.sms?.error ? "Delivered via Gateway" : "Dispatched"}
                 </span>
               </div>
-              <div className="p-2 rounded bg-white border border-slate-200 flex items-center justify-between">
+              <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between">
                 <span className="text-slate-600">WhatsApp Alert:</span>
                 <span className="font-semibold text-emerald-700 font-mono">
                   {smsResult.whatsapp?.sent ? "✓ Delivered" : "Ready / Direct Chat"}
@@ -437,36 +458,36 @@ export default function FieldInterceptConsole({
         )}
 
         {/* Inbound Reply Telemetry Listener */}
-        <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 text-xs space-y-2.5">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-              <Signal className="w-3.5 h-3.5 text-blue-600" />
-              Inbound Officer Telemetry Protocol
+            <span className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+              <Signal className="w-4 h-4 text-blue-600" />
+              Inbound Field Officer Telemetry Protocol
             </span>
-            <span className="text-[10px] font-mono font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-              Automated Webhook Active
+            <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300">
+              ● Automated Webhook Active
             </span>
           </div>
-          <p className="text-xs text-blue-900/80 leading-relaxed">
-            When the field officer texts back to <strong className="font-mono text-blue-950">+1 (430) 237-3377</strong>:
+          <p className="text-xs text-slate-600 leading-relaxed">
+            When the patrolling officer texts back to <strong className="font-mono text-slate-800">+1 (430) 237-3377</strong>:
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 rounded-lg bg-white border border-blue-200/70 shadow-2xs">
-              <div className="flex items-center gap-1.5 font-bold text-emerald-800 font-mono text-[11px]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-white border border-emerald-200 shadow-2xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800 font-mono text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 Reply &quot;FOUND&quot;
               </div>
-              <p className="text-[11px] text-slate-600 mt-0.5">
-                Confirms recovery, logs officer phone, deactivates geofences, and closes the case.
+              <p className="text-[11px] text-slate-600 leading-normal">
+                Confirms subject recovery, logs officer identity, halts geofences, and closes the alert dossier.
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-white border border-blue-200/70 shadow-2xs">
-              <div className="flex items-center gap-1.5 font-bold text-amber-800 font-mono text-[11px]">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <div className="p-3 rounded-xl bg-white border border-amber-200 shadow-2xs space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800 font-mono text-xs">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
                 Reply &quot;NOT FOUND&quot;
               </div>
-              <p className="text-[11px] text-slate-600 mt-0.5">
-                Logs negative contact to audit ledger and expands velocity search bounds.
+              <p className="text-[11px] text-slate-600 leading-normal">
+                Logs negative contact to audit ledger and automatically expands the velocity search bounds.
               </p>
             </div>
           </div>
@@ -474,10 +495,10 @@ export default function FieldInterceptConsole({
       </div>
 
       {/* CARD 2: TACTICAL MDT & RADIO AUDIO BROADCAST */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3.5">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <Radio className="w-4 h-4" />
             </div>
             <div>
@@ -512,31 +533,31 @@ export default function FieldInterceptConsole({
 
         {/* Assigned Cruiser Units */}
         <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
               <Car className="w-3.5 h-3.5 text-blue-600" />
               <span>PCR-04</span>
             </div>
-            <div className="text-[10px] text-slate-500">Sector Beat &bull; 2 min</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Sector Beat &bull; 2 min</div>
           </div>
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
               <Train className="w-3.5 h-3.5 text-amber-600" />
               <span>RPF-02</span>
             </div>
-            <div className="text-[10px] text-slate-500">Transit &bull; 4 min</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Transit &bull; 4 min</div>
           </div>
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-center gap-1 font-bold text-slate-800 text-[11px]">
               <Shield className="w-3.5 h-3.5 text-purple-600" />
               <span>HWP-09</span>
             </div>
-            <div className="text-[10px] text-slate-500">Highway &bull; Active</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Highway &bull; Active</div>
           </div>
         </div>
 
         {radioPingSuccess && (
-          <div className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded border border-emerald-200 flex items-center gap-1.5 animate-in fade-in">
+          <div className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 animate-in fade-in">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Radio advisory broadcast acknowledged by patrol units.
           </div>
@@ -544,11 +565,11 @@ export default function FieldInterceptConsole({
       </div>
 
       {/* COLLAPSIBLE SECTION: MANUAL INCIDENT FILING (FALLBACK) */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
         <button
           type="button"
           onClick={() => setShowManualForm(!showManualForm)}
-          className="w-full p-3 bg-slate-50/70 hover:bg-slate-100/70 text-left flex items-center justify-between transition-colors"
+          className="w-full p-3.5 bg-slate-50/70 hover:bg-slate-100/70 text-left flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-500" />
@@ -710,26 +731,29 @@ export default function FieldInterceptConsole({
 
   if (isModal) {
     return (
-      <div className="fixed inset-0 z-[1000] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full p-5 relative max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+      <div className="fixed inset-0 z-[1000] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full p-5 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+          <div className="flex items-start justify-between pb-3.5 mb-4 border-b border-slate-100">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-blue-600 font-bold">
-                  TACTICAL FIELD DISPATCH & INCIDENT COMMS
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  TACTICAL FIELD DISPATCH & COMMS
                 </span>
-                <Badge variant="outline" className="text-[10px] font-mono bg-slate-50 text-slate-600 border-slate-200">
+                <Badge variant="outline" className="text-[10px] font-mono bg-slate-100 text-slate-700 border-slate-300 font-semibold">
                   {caseData.caseId}
                 </Badge>
               </div>
-              <h2 className="text-base font-bold text-slate-900 mt-0.5">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 Ground Intercept Telemetry & Uplink
               </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Target: <strong className="text-slate-700">{targetLocation}</strong>
+              </p>
             </div>
             {onClose && (
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
