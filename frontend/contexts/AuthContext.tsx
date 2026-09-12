@@ -75,8 +75,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithSecretCode = async (
     code: string, 
-    officerName = "Sub-Inspector R. Sawant", 
-    badge = "IPS-4089"
+    officerName = "", 
+    badge = ""
   ): Promise<{ success: boolean; message?: string }> => {
     const cleanCode = code.trim().toUpperCase();
     const envCode = (process.env.NEXT_PUBLIC_OFFICER_SECRET_CODE || "").trim().toUpperCase();
@@ -85,11 +85,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (isMatch) {
       const officerUser: OfficerAuthUser = {
-        uid: `OFFICER-${badge.replace(/\s+/g, "") || "DUTY"}`,
-        displayName: officerName || "Duty Officer",
+        uid: `OFFICER-${badge ? badge.replace(/\s+/g, "") : "DUTY"}`,
+        displayName: officerName.trim() || "Duty Officer",
         email: "dispatch.officer@childguard.gov.in",
         isOfficer: true,
-        badgeNumber: badge || "IPS-4089",
+        badgeNumber: badge.trim() || undefined,
         station: "Goa Central Police Headquarters"
       };
 

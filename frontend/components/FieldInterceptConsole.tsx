@@ -77,8 +77,8 @@ export default function FieldInterceptConsole({
   const [showManualForm, setShowManualForm] = useState(false);
   const [manualTab, setManualTab] = useState<"found" | "not_found">("found");
   const [submittingManual, setSubmittingManual] = useState(false);
-  const [unitCallsign, setUnitCallsign] = useState("PCR-04");
-  const [officerName, setOfficerName] = useState("Sub-Inspector R. Sawant");
+  const [unitCallsign, setUnitCallsign] = useState("");
+  const [officerName, setOfficerName] = useState("");
   const [recoveryLocation, setRecoveryLocation] = useState(targetLocation);
   const [condition, setCondition] = useState("Safe and uninjured");
   const [notes, setNotes] = useState("Visual and physical biometric match confirmed. Subject in protective custody.");
@@ -588,11 +588,11 @@ export default function FieldInterceptConsole({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-500 font-semibold uppercase">Unit Callsign</label>
-                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} className="h-8 text-xs mt-1" />
+                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} placeholder="e.g. PCR-04" className="h-8 text-xs mt-1" />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-500 font-semibold uppercase">Lead Officer</label>
-                    <Input value={officerName} onChange={(e) => setOfficerName(e.target.value)} className="h-8 text-xs mt-1" />
+                    <Input value={officerName} onChange={(e) => setOfficerName(e.target.value)} placeholder="e.g. Sub-Inspector R. Sawant" className="h-8 text-xs mt-1" />
                   </div>
                 </div>
                 <div>
@@ -621,7 +621,7 @@ export default function FieldInterceptConsole({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-500 font-semibold uppercase">Unit Callsign</label>
-                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} className="h-8 text-xs mt-1" />
+                    <Input value={unitCallsign} onChange={(e) => setUnitCallsign(e.target.value)} placeholder="e.g. PCR-04" className="h-8 text-xs mt-1" />
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-500 font-semibold uppercase">Swept Area</label>

@@ -19,8 +19,7 @@ import {
   Eye,
   EyeOff,
   BadgeCheck,
-  AlertCircle,
-  Sparkles
+  AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,8 +29,8 @@ export default function LoginPage() {
 
   const [authMode, setAuthMode] = useState<"secret_code" | "google">("secret_code");
   const [secretCode, setSecretCode] = useState("");
-  const [officerName, setOfficerName] = useState("Sub-Inspector R. Sawant");
-  const [badgeNumber, setBadgeNumber] = useState("IPS-4089");
+  const [officerName, setOfficerName] = useState("");
+  const [badgeNumber, setBadgeNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -56,7 +55,7 @@ export default function LoginPage() {
       const res = await signInWithSecretCode(
         secretCode, 
         officerName.trim() || "Duty Officer", 
-        badgeNumber.trim() || "IPS-4089"
+        badgeNumber.trim() || ""
       );
 
       if (res.success) {
@@ -69,11 +68,6 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleQuickFill = (code: string) => {
-    setSecretCode(code);
-    setErrorMsg(null);
   };
 
   if (loading) {
@@ -187,7 +181,7 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       value={secretCode}
                       onChange={(e) => setSecretCode(e.target.value)}
-                      placeholder="Enter Secret Code (e.g., CG-OFFICER-2026)"
+                      placeholder="Enter Departmental Security PIN"
                       className="pr-10 h-11 text-sm font-mono tracking-wider border-slate-300 focus:border-blue-500"
                       autoComplete="off"
                       autoFocus
@@ -198,30 +192,6 @@ export default function LoginPage() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Quick Hint / Demo Buttons */}
-                <div className="space-y-1.5 bg-slate-50/80 p-3 rounded-lg border border-slate-100">
-                  <div className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    <span>Officer Secret Passcode:</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickFill("CG-OFFICER-2026")}
-                      className="px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-mono text-xs transition-colors"
-                    >
-                      CG-OFFICER-2026
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickFill("POLICE112")}
-                      className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-mono text-xs transition-colors"
-                    >
-                      POLICE112
                     </button>
                   </div>
                 </div>
