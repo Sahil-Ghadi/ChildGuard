@@ -453,6 +453,7 @@ def trigger_twilio_dispatch(req: TwilioDispatchReq):
         "isConfigured": is_twilio_configured()
     }
 
+@app.post("/whatsapp/webhook")
 @app.post("/api/twilio/webhook")
 async def twilio_incoming_webhook(request: Request):
     content_type = request.headers.get("content-type", "")
