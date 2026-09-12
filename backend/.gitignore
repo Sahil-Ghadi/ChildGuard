@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Google/Firebase service account credentials
+serviceAccountKey.json
+
+# Logs
+logs/
+*.log
+
+# Build output
+dist/
+build/
+
+# Runtime files
+.tmp/
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
